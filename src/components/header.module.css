@@ -1,0 +1,13 @@
+.header{
+    padding:0 2rem;
+}
+.nav{
+    width:100%;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-end;
+    align-items: center;    
+}
+.nav__item{
+    margin:5px 10px;
+}
