@@ -4,10 +4,7 @@ import Layout from "../components/layout"
 // Components
 import { Link, graphql } from "gatsby"
 
-
-
 const Tags = ({ pageContext, data }) => {
-  
   const { tag } = pageContext
   const { edges, totalCount } = data.allMarkdownRemark
   const tagHeader = `${totalCount} post${
@@ -15,37 +12,26 @@ const Tags = ({ pageContext, data }) => {
   } tagged with "${tag}"`
 
   return (
-    <Layout> 
-          <h3>
-            {tagHeader}
-          </h3>
-    
-                     <div>
-        {edges.map(({ node,index }) => {
-          
-          
-          return (
-<div>
-        <Link key={index} to={node.fields.slug}>
+    <Layout>
+      <h3>{tagHeader}</h3>
 
-      {node.frontmatter.title}
-      </Link>
-      <p>{node.frontmatter.date}</p>
-</div>
+      <div>
+        {edges.map(({ node, index }) => {
+          return (
+            <div>
+              <Link key={index} to={node.fields.slug}>
+                {node.frontmatter.title}
+              </Link>
+              <p>{node.frontmatter.date}</p>
+            </div>
           )
         })}
 
-      
-     
-            <Link to="/tags">All tags</Link>
-            </div>
-          
-      
-    
+        <Link to="/tags">All tags</Link>
+      </div>
     </Layout>
   )
 }
-
 
 export default Tags
 

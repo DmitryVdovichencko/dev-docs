@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Link, graphql } from "gatsby"
-import Layout from '../components/layout';
+import Layout from "../components/layout"
 
 const TagsPage = ({
   data: {
@@ -11,37 +11,20 @@ const TagsPage = ({
     },
   },
 }) => {
-  
-  return(
-
+  return (
     <Layout>
-         <h3>
-            All tags
-          </h3>
-      
-     
+      <h3>All tags</h3>
 
-        {group.map((tag,i) => (
-            <div key ={i}>
-                <Link to={`/tags/${tag.fieldValue}`}>{` ${tag.fieldValue} (${tag.totalCount} posts)`}</Link>
-                
-            </div>
-        
-       
-      
-          )
-
-        
-
-     
-
-        
-
-        )}
-      
+      {group.map((tag, i) => (
+        <div key={i}>
+          <Link
+            to={`/tags/${tag.fieldValue}`}
+          >{` ${tag.fieldValue} (${tag.totalCount} posts)`}</Link>
+        </div>
+      ))}
     </Layout>
-
-)}
+  )
+}
 
 TagsPage.propTypes = {
   data: PropTypes.shape({
