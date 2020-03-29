@@ -8,6 +8,8 @@ tags: ["pg"]
 
 [Вся правда об индексах в PostgreSQL](https://youtu.be/aaecM4wKdhY)
 
+[Серия статей на Хабре](https://habr.com/ru/company/postgrespro/blog/326096/)
+
 __Индекс__ - дополнительня структура данных для ускорения работы запросов.
 
 * Помогает при поиске
