@@ -23,7 +23,7 @@ const IndexPage = ({ data }) => (
         🚀
       </span>
     </p>
-    {data.allMarkdownRemark.edges.map(({ node }, index) => (
+    {data.allMdx.edges.map(({ node }, index) => (
       <div>
         <Link key={index} to={node.fields.slug}>{`${index + 1}. ${
           node.frontmatter.title
@@ -38,7 +38,7 @@ const IndexPage = ({ data }) => (
 export default IndexPage
 export const query = graphql`
   query {
-    allMarkdownRemark(sort: { fields: [frontmatter___date], order: DESC }) {
+    allMdx(sort: { fields: [frontmatter___date], order: DESC }) {
       totalCount
       edges {
         node {
