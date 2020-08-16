@@ -75,7 +75,7 @@ req.session.passport.user = { // our serialised user object // }.
 
 ## Итого: все методы и мидллвары `passport`
 
-1.__`passport.initialize`__ миддлвар вызывается на каждый запрос. Убеждается что сессия содержит `passport.user objec t`, который может быть пустым.
+1. __`passport.initialize`__ миддлвар вызывается на каждый запрос. Убеждается что сессия содержит `passport.user objec t`, который может быть пустым.
 
 2. __`passport.session`__ миддлвар - часть стратегии `Passport Strategy`: загружает объект пользователя `user` в `req.user` , если сериализованный объект найден на сервере.
 
