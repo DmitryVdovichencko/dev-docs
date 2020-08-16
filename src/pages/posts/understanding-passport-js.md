@@ -25,44 +25,68 @@ Passport.js - миддлвар для авторизации (позволяющ
 
 Итак, если мы верно настроили `passportjs`, согласно примеру выше, то при поытке пользователя авторизоваться по маршруту [/login](/login), произойдет следующее:
 
-    * Когда пользователь отправит данные формы авторизации, `POST` запрос к маршруту [/login](/login) вызовет выполнение мидлвар `passport.authenticate`, который мы подключили.
+* Когда пользователь отправит данные формы авторизации, `POST` запрос к маршруту [/login](/login) вызовет выполнение мидлвар `passport.authenticate`, который мы подключили.
     
-    * Поскольку миддлвар авторизации для этого маршрута настроен на использование стратегии `LocalStrategy`, `passport` вызовет нашу реализацию `LocalStrategy`.
+* Поскольку миддлвар авторизации для этого маршрута настроен на использование стратегии `LocalStrategy`, `passport` вызовет нашу реализацию `LocalStrategy`.
     
-    * `Passport` возьмет из запроса `req.body.username` и `req.body.password` и передаст их нашей функции проверки авторизации в `LocalStrategy`.
+* `Passport` возьмет из запроса `req.body.username` и `req.body.password` и передаст их нашей функции проверки авторизации в `LocalStrategy`.
     
-    * Теперь займемся своими делами: загрузим данные пользователя из базы данных и проверим совпадают ли пароли.
+* Теперь займемся своими делами: загрузим данные пользователя из базы данных и проверим совпадают ли пароли.
     
-    In case of an Error interacting with our database, we need to invoke done(err). When we cannot find the user or the passwords do not watch, we invoke done(null, false). If everything went fine and we want the user to login we invoke done(null, user).
-    Calling done will make the flow jump back into passport.authenticate. It's passed the error, user and additional info object (if defined).
-    If the user was passed, the middleware will call req.login (a passport function attached to the request).
-    This will call our passport.serializeUser method we've defined earlier. This method can access the user object we passed back to the middleware. It's its job to determine what data from the user object should be stored in the session. The result of the serializeUser method is attached to the session as req.session.passport.user = { // our serialised user object // }.
-    The result is also attached to the request as req.user.
-    Once done, our requestHandler is invoked. In the example the user is redirected to the homepage.
+В случае если при взаимодействии с базой данных сработает ошибка, нам нужно передать ее методу `done(err)`. 
 
-Subsequent authenticated requests flow
+Когда мы не можем найти пользователя или пароли не совпали, мы вызываем `done(null, false)`. 
 
-On subsequent request, the following occurs:
+Если же все прошло хорошо, и мы хотим залогинить пользователя, вызываем `done(null, user)`.
 
-    Express loads the session data and attaches it to the req. As passport stores the serialised user in the session, the serialised user object can be found at req.session.passport.user.
-    The general passport middleware we setup (passport.initialize) is invoked on the request, it finds the passport.user attached to the session. If is doesn't (user is not yet authenticated) it creates it like req.passport.user = {}.
-    Next, passport.session is invoked. This middleware is a Passport Strategy invoked on every request. If it finds a serialised user object in the session, it will consider this request authenticated.
-    The passport.session middleware calls passport.deserializeUser we've setup. Attaching the loaded user object to the request as req.user.
+Вызов `done` позволит последовательности авторизации перепрыгнуть обратно в `passport.authenticate`. Передаются ошибка `error`, `user` и объект с дополнительной информацией (если он был определен).
 
-Summary passport methods and middleware
+Если объект `user` был передан, миддлвар  вызовет `req.login` (метод `passport`, добавленный к запросу `request`).
 
-    passport.initialize middleware is invoked on every request. It ensures the session contains a passport.user object, which may be empty.
-    passport.session middleware is a Passport Strategy which will load the user object onto req.user if a serialised user object was found in the server.
-    passport.deserializeUser is invoked on every request by passport.session. It enables us to load additional user information on every request. This user object is attached to the request as req.user making it accessible in our request handling.
-    Our Local Strategy is only invoked on the route which uses the passport.authenticate middleware.
-    Only during this authentication passport.serializeUser is invoked allowing us the specify what user information should be stored in the session.
+Это приведет к вызову  метода `passport.serializeUser`, который мы определили ранее. 
 
-Overview passport methods attached to the request
+Этот метод имеет доступ к объекту `user`, который мы передали в миддлвар.
 
-To finish an overview of passport methods accessible within request handlers:
+Его работа заключается в том, чтобы определить, какие данные объекта `user` должны быть записаны в сессии `session`. 
 
-    req.login()
-    req.logout()
-    req.isAuthenticated()
-    req.isUnAuthenticated()
+Результат выполнения метода `serializeUser` прикрепляется к сессии: 
+```
+req.session.passport.user = { // our serialised user object // }.
+```
+Результат также прикреплен к запросу: `req.user`.
+
+Когда все это выполнено, вызывается наш обработчик запросов `requestHandler`. В данном примере поьзоватеь будет перенаправлен на стартовую страницу.
+
+## Последовательность последующих запросов авторизации
+
+При последующих запросах, произодет следующее:
+
+* __Express__ загрузит данные сессии и прикрепит их к запросу `req`. Так как __passport__ записал выбранные данные пользователя в сессию, сериализованный объект `user` можно будет найти в `req.session.passport.user`.
+
+* Основной миддлвар `passport`, который мы настроили (__`passport.initialize`__) будет вызван при запросе, он найдет `passport.user` прикрепленный к сессии. Если он отсутствует (пользователь еще не авторизовался), то будет создан в следующем виде: `req.passport.user = {}`.
+
+* Затем, будет вызван `passport.session`. Этот миддлвар - часть стратегии `Passport Strategy`, вызываемой при каждом запросе. Если он найдет сериализованный объект пользователя `user` в сессии, он решит, что запрос `request` авторизован.
+
+* Миддлвар `passport.session` вызовет `passport.deserializeUser`, который мы добавили ранее. Тем самым, прикрепляя загруженный объект `user` к запросу в виде `req.user`.
+
+## Итого: все методы и мидллвары `passport`
+
+1.__`passport.initialize`__ миддлвар вызывается на каждый запрос. Убеждается что сессия содержит `passport.user objec t`, который может быть пустым.
+
+2. __`passport.session`__ миддлвар - часть стратегии `Passport Strategy`: загружает объект пользователя `user` в `req.user` , если сериализованный объект найден на сервере.
+
+3. __`passport.deserializeUser`__ вызывается на каждый запрос из миддлвара __`passport.session`__. Это позволяет нам подгружать дополнительную информацию поьзователя при каждом запросе. Этот объект пользователя `user` будет прикреплен к запросу в виде `req.user`, чтобы можно было получить к нему доступ при обработке запросов.
+
+4. Наша локальная стратегия `Local Strategy` вызывается только при использовании маршрута который содержит миддлвар __`passport.authenticate`__.
+
+5. Только при авторизации вызывается __`passport.serializeUser`__ позволяя нам определить какая информция пользователя будет записана в сессии.
+
+#### Методы `passport` прикрепленные к запросу  `request`
+
+Ну и наконец обзор методов `passport` доступных внутри обработчиков запросов:
+
+* `req.login()`
+* `req.logout()`
+* `req.isAuthenticated()`
+* `req.isUnAuthenticated()`
 
