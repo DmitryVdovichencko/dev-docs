@@ -5,23 +5,24 @@
 Использовать TypeScript еще никогда не было так просто: благодаря TypeScript плагину для Babel (`@babel/preset-typescript`), который стал результатом длительного сотрудничества между командами TypeScript и Babel. В этой статье мы узнаем 4 причины, почему TypeScript и Babel идеальная пара, и пройдем пошаговое руководство на TypeScript за 10 минут.
 
 ## А? Что? Зачем?
-I didn’t understand the need for this new preset at first.
 
-Aren’t Babel and TypeScript two completely different things? How can Babel handle the TypeScript type checking? TypeScript can already output to ES5 just like Babel can, so what’s the point? Isn’t merging Babel and TypeScript complicating things?
+Сначала, я не понимал необходимость использования новых настроек Babel.
 
-After hours of research, my conclusion:
-TypeScript and Babel are a beautiful marriage.
+Разве Babel и TypeScript не абсолютно разные вещи? Как Babel осуществляет проверку типов TypeScript? TypeScript уже может производить JS код стандарта ES5 также как и Babel, так в чем идея? Похоже обЪединение Babel и TypeScript только все усложняет?
 
-Let me show you.
+После нескольких часов изучения проблемы, мое заключение:
+TypeScript и Babel - это счастливый союз.
 
-1) You already use Babel (or should).
-You’re in one of these three categories:
+И вот почему:
 
-You already use Babel. If not directly, then your Webpack config feeds *.js files into Babel (this is the case for most boilerplates, including create-react-app).
-You use Typescript without Babel. Consider adding Babel to your arsenal, it provides many unique features. Read on.
-You don’t use Babel? It’s time to jump on board.
-Write modern JavaScript without breaking anything.
-Your JavaScript code needs to run in an old browser? No problem, Babel converts the code and makes everything a-okay. Use the latest and greatest features without worry.
+1) Вы уже используете Babel (или должны).
+Вы принадлежите одной из 3-х категорий:
+
+Вы уже используете Babel. Может быть неявно, например когда Webpack настроен на то, чтобы "скормить" `*.js` файлы Babel (это случай большинства boilerplates, включая create-react-app).
+Вы используете Typescript без Babel. Подумайте над тем, чтобы добавить Babel в свой арсенал, он предоставляет множество уникальных возможностей. Читайте далее.
+Не используете Babel? Самое время начать.
+Пишите на современном JavaScript без страха сломать что-либо.
+Ваш JavaScript код должен запускаться в старом браузере? Без проблем, Babel транспилирует код так, чтобы все было okay. Без сомнений используйте последние возможности языка.
 
 The TypeScript compiler has a similar feature, enabled by setting target to something like ES5 or ES6. But the Babel configuration improves on this with babel-preset-env. Instead of locking in a specific set of JavaScript features (ES5, ES6, etc), you list the environments you need to support:
 "targets": {
