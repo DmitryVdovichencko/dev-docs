@@ -4,6 +4,7 @@ module.exports = {
     description: `Dimetrio development learning docs`,
     author: `@DmitryVdovichenko`,
   },
+  pathPrefix: "/dev-docs",
   plugins: [
     `gatsby-plugin-react-helmet`,
     {
