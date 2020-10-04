@@ -7,13 +7,11 @@ date: '2019-08-24T08:16:49.561Z'
 categories: []
 keywords: []
 tags: ["react"]
-slug: >-
-  /@Dimetrio89/4-%D0%BF%D0%BE%D0%B4%D1%85%D0%BE%D0%B4%D0%B0-%D0%B4%D0%BB%D1%8F-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%8B-%D1%81-%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5%D0%BC-%D0%BA%D0%BE%D0%BC%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%BE%D0%B2-%D0%B2-react-6feaf8bb0ee1
 ---
 
 # 4 подхода для работы с состоянием компонентов в React.
 
-![](img\1__xtYEQUYzu5qUKuXg__SGx__g.jpeg)
+![](https://miro.medium.com/max/700/1*xtYEQUYzu5qUKuXg-SGx-g.jpeg)
 
 Перевод статьи [Cory House](https://twitter.com/housecor) [Handling State in React: Four Immutable Approaches to Consider](https://www.freecodecamp.org/news/handling-state-in-react-four-immutable-approaches-to-consider-d1f5c00249d5/).
 

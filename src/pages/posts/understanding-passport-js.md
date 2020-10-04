@@ -1,3 +1,9 @@
+---
+title: "Разбираемся с процессом авторизации в passport.js" 
+date: "2020-10-04"
+tags: ["js"]
+---
+
 # Разбираемся с процессом авторизации в `passport.js`
 
 Перевод статьи [Understanding passport.js authentication flow](http://toon.io/understanding-passportjs-authentication-flow/)
