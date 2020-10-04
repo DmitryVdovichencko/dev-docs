@@ -18,107 +18,173 @@ TypeScript и Babel - это счастливый союз.
 1) Вы уже используете Babel (или должны).
 Вы принадлежите одной из 3-х категорий:
 
-Вы уже используете Babel. Может быть неявно, например когда Webpack настроен на то, чтобы "скормить" `*.js` файлы Babel (это случай большинства boilerplates, включая create-react-app).
+Вы уже используете Babel. Может быть неявно, например, когда Webpack настроен на то, чтобы "скормить" `*.js` файлы Babel (это случай большинства boilerplates, включая create-react-app).
+
 Вы используете Typescript без Babel. Подумайте над тем, чтобы добавить Babel в свой арсенал, он предоставляет множество уникальных возможностей. Читайте далее.
+
 Не используете Babel? Самое время начать.
 Пишите на современном JavaScript без страха сломать что-либо.
 Ваш JavaScript код должен запускаться в старом браузере? Без проблем, Babel транспилирует код так, чтобы все было okay. Без сомнений используйте последние возможности языка.
 
-The TypeScript compiler has a similar feature, enabled by setting target to something like ES5 or ES6. But the Babel configuration improves on this with babel-preset-env. Instead of locking in a specific set of JavaScript features (ES5, ES6, etc), you list the environments you need to support:
+У компилятора TypeScript есть похожая фича, которая включается, если поставить преобразование к стнадартам типа ES5 или ES6. 
+
+Но, конфигурация Babel делает это лучше с применением `babel-preset-env`. Вместо привязки к возможностям спецификаций JavaScript (ES5, ES6, и т.д.), вы просто перечисляете окружения, которые вам необходимо поддерживать:
+
+```json
 "targets": {
 	"browsers": ["last 2 versions", "safari >= 7"],
 	"node": "6.10"
 }
-Babel uses compat-table to check which JavaScript features to convert and polyfill for those specific target environments.
-compat-tablecompat-table
-Take a moment to appreciate the genius who named this project ‘compat-table’.
-An interesting technique used by create-react-app: compile with the latest browsers during development (for speed), and compile with a larger range of browsers in production (for compatibility). Nice.
-Babel is super configurable.
-Want JSX? Flow? TypeScript? Just install a plugin and Babel can handle it. There’s a huge selection of official plugins, mostly covering upcoming JavaScript syntax. And there’s plenty of third-party plugins too: improve lodash imports, enhance console.log, or strip console.log. Find more on the awesome-babel list.
-But be careful. If the plugin alters the syntax significantly, then TypeScript may be unable to parse it. For example, the highly anticipated optional chaining proposal has a Babel plugin:
-Optional chainingOptional chaining
-@babel/plugin-proposal-optional-chaining
-But unfortunately TypeScript is unable to understand this updated syntax.
+```
 
-Don’t stress, there’s an alternative…
+Babel использует `compat-table` для проверки тех возможностей JavaScript, которые нуждаются в преобразовании и использовании полифилов в том окружении, которое настроено.
+compat-tablecompat-table
+Нужно воздать должное, тому кто назвал этот проект `compat-table`.
+
+Интересная техника, которая используется в `create-react-app`: при разработке компилируем для последних версий браузеров (для быстроты), а на продакшене компилируем с поддержкой наибольшего числа браузеров (для совместимости). Отлично.
+
+Babel супер гибкий в настройках.
+Нужен JSX? Flow? TypeScript? Просто установите плагин и Babel обо всем позаботится. Есть огромный выбор официальных плагинов, которые позволяют поддерживать появляющиеся возможности JavaScript. 
+
+А также есть множество сторонних плаигнов: улучшение импортов lodash, расширение возможностей `console.log`, или разделение `console.log`. Можно много чего найти в списке плагинов awesome-babel.
+
+Но, будьте осторожны. Если плагин значительно меняет синтаксис, TypeScript может оказаться не в состоянии распарсить его. Например, высоко ожидаемый оператор опциональной последовательности ( для безопасного обращения к цепочкам свойств или методов объекта `user?.email`) имеет свой плагин Babel:`@babel/plugin-proposal-optional-chaining`
+
+Но, к сожалению, TypeScript не умеет распознавать этот обновленный синтакс.
+
+Без паники, у нас есть альтернатива…
 
 Babel Macros
-You know Kent C Dodds? He’s created a game-changing Babel plugin: babel-plugin-macros.
-Instead of adding plugins to your Babel config file, you install the macro as a dependency and import it within your code. The macro kicks in when Babel is compiling, and modifies the code however it likes.
+Знаете кто такой Kent C Dodds? Он создал революционный плагин Babel: `babel-plugin-macros`.
 
-Here’s an example. Using idx.macro to scratch our itch until optional chaining proposal arrives.
+Вместо добавления плагинов в файл конфигурации Babel, вы устанавливаете макрос как зависимость и импортируете его в своем коде. Макрос включается при компиляции Babel, и меняет код как будет нужно.
+
+Вот например. Используем `idx.macro` чтобы устранить нашу боль, пока не пояится официальная поддержка оператора опциональной последовательности.
+
+```javascript
 import idx from 'idx.macro';
 
 const friends = idx(
 	props,
 	_ => _.user.friends[0].friends
 );
-Compiles to:
+```
 
+Компилируется в:
+
+```javascript
 const friends =
 	props.user == null ? props.user :
 	props.user.friends == null ? props.user.friends :
 	props.user.friends[0] == null ? props.user.friends[0] :
 	props.user.friends[0].friends
-Macros are pretty new, but quickly gaining traction. Especially since landing in create-react-app v2.0. CSS in JS is covered: styled-jsx, styled-components, and emotion. Webpack plugins are being ported over: raw-loader, url-loader, and filesize-loader. And many more listed on awesome-babel-macros.
-Here’s the best part: unlike Babel plugins, all Babel macros are compatible with TypeScript. They can also help reduce run-time dependencies, avoid client-side computation, and catch errors earlier at build-time. Check out this post for more details.
-Improved console.log
-A better console.log: scope.macro
-2) It’s easier to manage ONE compiler.
-TypeScript requires it’s own compiler — it’s what provides the amazing type checking superpowers.
+```
 
-In the gloomy days (before Babel 7).
-Chaining together two separate compilers (TypeScript and Babel) is no easy feat. The compilation flow becomes: TS > TS Compiler > JS > Babel > JS (again).
-Webpack is often used to solve this problem. Tweak your Webpack config to feed *.ts into TypeScript, and then feed the result into Babel. But which TypeScript loader do you use? Two popular choices are ts-loader and awesome-typescript-loader. The README.md for awesome-typescript-loader mentions it might be slower for some workloads, and recommends ts-loader with HappyPack or thread-loader. The README.md for ts-loader recommends combining with fork-ts-checker-webpack-plugin, HappyPack, thread-loader, and / or cache-loader.
-Eugh. No. This is where most people get overwhelmed and put TypeScript in the “too hard” basket. I don’t blame them.
+Макросы довольно новые, но их поддержка быстро растет. Особенно после появления в  `create-react-app v2.0`. 
 
-One does not simply configure TypeScriptOne does not simply configure TypeScript
-The bright sunny days (with Babel 7).
-Wouldn’t it be nice to have one JavaScript compiler? Whether your code has ES2015 features, JSX, TypeScript, or something crazy custom — the compiler knows what to do.
-I just described Babel. Cheeky.
+CSS in JS поддерживаются: `styled-jsx`, `styled-components`, и `emotion`. 
 
-By allowing Babel to act as the single compiler, there’s no need to manage, configure, or merge two compilers with some convoluted Webpack sorcery.
+Webpack плагины: `raw-loader`, `url-loader`, и `filesize-loader`. И остальные в списке `awesome-babel-macros`.
 
-It also simplifies the entire JavaScript ecosystem. Instead of linters, test runners, build systems, and boilerplates supporting different compilers, they just need to support Babel. You then configure Babel to handle your specific needs. Say goodbye to ts-node, ts-jest, ts-karma, create-react-app-typescript, etc, and use the Babel support instead. Support for Babel is everywhere, checkout the Babel setup page:
-Babel and TypeScriptBabel and TypeScript
-Babel has you covered.
-3) It’s faster to compile.
-Warning! You might want to sit down for this bit.
-How does Babel handle TypeScript code? It removes it.
+И вот, что самое лучшее: в отличие от плагинов Babel, все макросы Babel совместимы с TypeScript. 
 
-Yep, it strips out all the TypeScript, turns it into “regular” JavaScript, and continues on its merry way.
+Еще они помогают: уменьшить число зависимостей, избежать вычислений на стороне клиента, и выявить ошибки на стадии сборки. Подробнее об этом можно почитать здесь.
 
-This sounds ridiculous, but this approach has two strong advantages.
+Улучшенный `console.log`
+`console.log` на максиммалках: `scope.macro`
 
-The first advantage: ️⚡️IT’S LIGHTNING FAST ⚡️.
-Most Typescript developers experience slow compilation times during development / watch mode. You’re coding away, you save a file, and… then… here it comes… annnnd… finally, you see your change. Oops, made a typo, fix that, save it, annnnd… eugh. It’s just slow enough to be annoying and break your momentum.
-It’s hard to blame the TypeScript compiler, it’s doing a lot of work. It’s scanning for type definition files (*.d.ts), including within node_modules, and ensuring your code is used correctly. This is why many fork the Typescript type checking into a separate process. However the Babel + TypeScript combo still provides faster compilation thanks to Babel’s superior caching and single-file emit architecture.
-So, if Babel strips out TypeScript code, what’s the point in writing TypeScript? That brings us to the second advantage…
+2) Всегда проще использовать ОДИН компилятор.
+TypeScript требует использования собственного компилятора — взамен он дает нам суперспособность проверки типов.
 
-4) Check for type errors only when you’re ready.
-You’re hacking some code together, quickly bashing out a solution to see if your idea has legs. You save the file, and TypeScript screams at you:
+Смутные времена (до Babel 7).
 
-“No! I won’t compile this! Your code is broken in 42 different files!”
-Yeah, you know it’s broken. You’ve probably broken a few unit tests too. But you’re just experimenting at this point. It’s infuriating to continuously ensure all your code is type safe all the time.
-This is the second advantage of Babel stripping out TypeScript code during compilation. You write code, you save, and it compiles (very quickly) without checking for type safety. Keep experimenting with your solution until you’re ready to check the code for errors. This workflow keeps you in the zone as you’re coding.
-So how do you check for type errors? Add a npm run check-types script that invokes the TypeScript compiler. I tweak my npm test command to first check types, and then continue running unit tests.
-It’s not a perfect marriage.
-According to the announcement post, there are four TypeScript features that do not compile in Babel due to its single-file emit architecture.
-Don’t worry, it ain’t so bad. And TypeScript will warn against these issues when the isolatedModules flag is enabled.
-1) Namespaces.
+Объединить два разных компилятора (TypeScript и Babel) - задача не из легких. Последовательность компиляции была такой: TS > TS Compiler > JS > Babel > JS (снова).
 
-Solution: don’t use them! They’re outdated. Use the industry standard ES6 modules (import / export) instead. The recommended tslint rules ensure namespaces are not used.
-2) Casting a type with the<newtype>x syntax.
+Webpack часто использовался для решения этой проблемы. 
 
-Solution: Use x as newtype instead.
-3) Const enums.
+Настариваем Webpack конфиг чтобы скормить файлы  `*.ts` TypeScript, а результат затем передать Babel. 
 
-This is a shame. Need to resort to regular enums for now.
+Но какой TypeScript loader вы используете? 
 
-4) Legacy-style import / export syntax.
+Два популярных варианта: `ts-loader` и `awesome-typescript-loader`. `README.md`  `awesome-typescript-loader` упоминает о том, что он может быть медленным при определенной нагрузке, и рекоммендует `ts-loader` с `HappyPack` или `thread-loader`. `README.md` для `ts-loader` рекомендует сочетание с `fork-ts-checker-webpack-plugin`, `HappyPack`, `thread-loader`, и / или `cache-loader`.
 
-Examples: import foo = require(...) and export = foo.
-In all my years of TypeScriptin’ I’ve never come across this. Who codes this way? Stop it!
+Да хорош. Стоп. Здесь большинство людей накрывет и они откладывают TypeScript в ящик “слишком сложно”. И я их не виню.
+
+Не так просто настроить TypeScript
+
+Светлое настоящее (с Babel 7).
+
+Разве не здорово иметь один JavaScript компилятор? Не важно, что используется в вашем коде: воможности ES2015, JSX, TypeScript, или вообще что-нибудь экзотическое  — компилятор знает, что делать.
+
+Я только что описал Babel. Cheeky.
+
+Позволяя Babel работать как единственному компилятору, нет необходимости настраивать, или объединять два компилятора в какой-то запутанной магии Webpack.
+
+Это также упрощает всю JavaScript экосистему. Вместо линтеров, систем тестирования, сборщиков, и бойлерплейтов, поддерживающих разные компиляторы, им всего лишь нужно поддерживать Babel. Вы конфигурируете Babel для поддержки того, что необходимо. Скажите "пока" `ts-node`, `ts-jest`, `ts-karma`, `create-react-app-typescript`, и т.п., и используйте вместо этого поддержку Babel. Поддержка Babel есть везде и всюду, посмотрите на страницу установки Babel:
+
+3) Быстрее компилируется.
+
+Внимание! Вам лучше присесть.
+Как Babel поддерживает TypeScript код? Он его удаляет.
+
+Да, он вырезает весь TypeScript, преобразует его в "обычный" JavaScript, и идет дальше своей дорогой.
+
+Звучит нелепо, но у этого метода есть два мощных преимущества.
+
+Первое: ️⚡️ ЭТО МОЛНИЕНОСНО! ⚡️.
+
+Большинство разработчиков Typescript сталкиваются с медленно компиляцией в режиме разработки / наблюдения. Вы покодили, сохранили файл, и… затем… вот сейчас… почти… все, вы можете увидеть ваши изменения. Упс, сделали опечатку, исправляем, сохраняем, иии… эх. Это достаточно меденно, что надоедает и убивает весь энтузиазм.
+
+Сложно винить компилятор TypeScript, он выполняет много работы. Сканирует файлы на определение типов (`*.d.ts`), включая `node_modules`, и убеждается что весь ваш код использует их корректно. Вот почему многие выделяют проверку типов Typescript в отдельный процесс. 
+
+Тем не менее,сочетаие Babel + TypeScript поддерживает более быструю компиляцию благодаря превосходному кэшированию Babel и архитектуре пофайловой обработки.
+
+Итак, если Babel выпиливает весь TypeScript код, какой смысл писать на TypeScript? Это приводит нас ко второму преимуществу…
+
+4) Проверка на ошибки типов только когда вы готовы.
+
+Допустим вы поэксперементировали с кодом, быстренько запилили решение, чтобы посмотреть сработает ли ваша идея. Вы сохраняете файл, и TypeScript орет на вас:
+
+“НЕТ! Я не собираюсь это компилировать! Твой код поломался в 42 разных файлах!”
+
+Естественно, вы знаете, что все сломалось. Возможно вы также поломали парочку юнит тестов. 
+
+Но, вы просто эксперементировали, на данный момент. Это становится невыносимым - постоянно убеждаться в том что весь твой код работает безопасно.
+
+В этом второе преимущество Babel выпиливания кода TypeScript при компиляции. Вы пишете код, сохраняете, и он компилируется (очень быстро), без проверки на безопаснось типов. 
+
+Продолжайте экспериментировать с вашим решением до тех пор, пока не будете готовы проверить код на ошибки. 
+
+Такой рабочий процесс не тревожит вас, пока вы кодите.
+
+Тогда  как запустить проверку на ошибки по типам? Добавьте скрипт `npm run check-types`, который вызовет компилятор TypeScript. Я настроил скрипт для запуска тестирования `npm test` чтобы сначала проверить типы, а затем продолжить запуск юнит-тестов.
+
+Это неидеальный союз.
+
+Есть четыре возможности TypeScript которые не компилируются в Babel из-за архитектуры пофайловой обработки.
+
+Не волнуйтесь в этом нет ничего страшного. И TypeScript предупредит вас об этих проблемах если флаг `isolatedModules` включен.
+1) Пространства имен.
+
+Решение: не используйте их! Они устарели. Вместо них используйте стандартные ES6 модули (import / export). Правило линтера `tslint` поможет убедиться,что они не используются.
+2) Кастуем типы с применением синтаксиса `<newtype>x`.
+
+Решение: Используйте `x as newtype`.
+
+3) Константные перечисления.
+
+Стыд и позор. Пока придется использовать обычные перечисления.
+
+4) Устаревший синтаксис import / export.
+
+Например: 
+```javascript
+import foo = require(...); 
+export = foo;
+
+```
+
+За все годы программирования на TypeScript не встречал такого. Кто пишет такой код? Закнчивайте!
 
 Ok, I’m ready to try TypeScript with Babel!
 Yeah!Yeah!
