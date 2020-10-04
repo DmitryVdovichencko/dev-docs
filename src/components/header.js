@@ -18,8 +18,6 @@ const Header = ({ siteTitle }) => (
         <div className={HeaderStyles.nav__item}><Link to="/tags/js">JavaScript</Link></div>
         <div className={HeaderStyles.nav__item}><Link to="/tags/react">React</Link></div>
         <div className={HeaderStyles.nav__item}><Link to="/tags/redux">Redux</Link></div>
-        <div className={HeaderStyles.nav__item}><Link to="/tags/pg">PostgreSQL</Link></div>
-        <div className={HeaderStyles.nav__item}><Link to="/tags/css">CSS</Link></div>
       </nav>
   </header>
 )

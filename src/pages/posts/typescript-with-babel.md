@@ -1,3 +1,9 @@
+---
+title: "Typescript и Babel: Счастливы Вместе" 
+date: "2020-10-04"
+tags: ["js"]
+---
+
 # Typescript и Babel: "Счастливы Вместе"
 
 Перевод статьи [Matt Turnbull](https://iamturns.com/about/) [TypeScript With Babel: A Beautiful Marriage](https://iamturns.com/typescript-babel/)
@@ -43,7 +49,7 @@ compat-tablecompat-table
 
 Интересная техника, которая используется в `create-react-app`: при разработке компилируем для последних версий браузеров (для быстроты), а на продакшене компилируем с поддержкой наибольшего числа браузеров (для совместимости). Отлично.
 
-Babel супер гибкий в настройках.
+### Babel супер гибкий в настройках.
 Нужен JSX? Flow? TypeScript? Просто установите плагин и Babel обо всем позаботится. Есть огромный выбор официальных плагинов, которые позволяют поддерживать появляющиеся возможности JavaScript. 
 
 А также есть множество сторонних плаигнов: улучшение импортов lodash, расширение возможностей `console.log`, или разделение `console.log`. Можно много чего найти в списке плагинов awesome-babel.
@@ -54,7 +60,7 @@ Babel супер гибкий в настройках.
 
 Без паники, у нас есть альтернатива…
 
-Babel Macros
+### Babel Macros
 Знаете кто такой Kent C Dodds? Он создал революционный плагин Babel: `babel-plugin-macros`.
 
 Вместо добавления плагинов в файл конфигурации Babel, вы устанавливаете макрос как зависимость и импортируете его в своем коде. Макрос включается при компиляции Babel, и меняет код как будет нужно.
@@ -90,13 +96,10 @@ Webpack плагины: `raw-loader`, `url-loader`, и `filesize-loader`. И о�
 
 Еще они помогают: уменьшить число зависимостей, избежать вычислений на стороне клиента, и выявить ошибки на стадии сборки. Подробнее об этом можно почитать здесь.
 
-Улучшенный `console.log`
-`console.log` на максиммалках: `scope.macro`
-
 2) Всегда проще использовать ОДИН компилятор.
 TypeScript требует использования собственного компилятора — взамен он дает нам суперспособность проверки типов.
 
-Смутные времена (до Babel 7).
+## Смутные времена (до Babel 7).
 
 Объединить два разных компилятора (TypeScript и Babel) - задача не из легких. Последовательность компиляции была такой: TS > TS Compiler > JS > Babel > JS (снова).
 
@@ -110,13 +113,13 @@ Webpack часто использовался для решения этой п�
 
 Да хорош. Стоп. Здесь большинство людей накрывет и они откладывают TypeScript в ящик “слишком сложно”. И я их не виню.
 
-Не так просто настроить TypeScript
+![not simply](../../images/ts_with_babel/simply-configure-typescript.jpg)
 
-Светлое настоящее (с Babel 7).
+## Светлое настоящее (с Babel 7).
 
 Разве не здорово иметь один JavaScript компилятор? Не важно, что используется в вашем коде: воможности ES2015, JSX, TypeScript, или вообще что-нибудь экзотическое  — компилятор знает, что делать.
 
-Я только что описал Babel. Cheeky.
+Я только что описал Babel. Съели?
 
 Позволяя Babel работать как единственному компилятору, нет необходимости настраивать, или объединять два компилятора в какой-то запутанной магии Webpack.
 
@@ -184,24 +187,33 @@ export = foo;
 
 ```
 
-За все годы программирования на TypeScript не встречал такого. Кто пишет такой код? Закнчивайте!
+За все годы программирования на TypeScript не встречал такого. Кто пишет такой код? Заканчивайте!
 
-Ok, I’m ready to try TypeScript with Babel!
-Yeah!Yeah!
-Photo by rawpixel.com
-Let’s do this! It should only take about 10 minutes.
+Ok, я готов использовать TypeScript с Babel!
 
-I’m assuming you have Babel 7 setup. If not, see the Babel Migration Guide.
-1) Rename .js files to .ts
 
-Assuming your files are in /src:
+Давайте сделаем это! Вошли и вышли. Простое приключение на 10 минут.
+
+Я предполагаю, что увас уже установлен Babel 7. Если нет, почитайте Babel Migration Guide.
+1. Переименуем `.js` файлы в `.ts`
+
+Если предположить что ваши исходники лежат в каталоге `/src`:
+
+```bash
 find src -name "*.js" -exec sh -c 'mv "$0" "${0%.js}.ts"' {} ;
-2) Add TypeScript to Babel
+```
 
-A few dependencies:
+2. Добавьте TypeScript к Babel
 
+Несколько зависимостей:
+
+``` bash
 npm install --save-dev @babel/preset-typescript @babel/plugin-proposal-class-properties @babel/plugin-proposal-object-rest-spread
-In your Babel config file (.babelrc or babel.config.js):
+```
+
+В файле конфигурации Babel (`.babelrc` или `babel.config.js`):
+
+```json
 {
 	"presets": [
 			"@babel/typescript"
@@ -211,23 +223,35 @@ In your Babel config file (.babelrc or babel.config.js):
 			"@babel/proposal-object-rest-spread"
 	]
 }
-TypeScript has a couple of extra features which Babel needs to know about (via those two plugins listed above).
+```
 
-Babel looks for .js files by default, and sadly this is not configurable within the Babel config file.
+В TypeScript есть пара возможностей, о которых Babel следует знать ( с помощью тех плагинов, что мы упоминали выше).
 
-If you use Babel CLI, add --extensions '.ts'
+Babel по умолчанию следит за `.js` файлами, и, к сожалению, это не определяется внутри файла конфигурации Babel.
 
-If you use Webpack, add 'ts' to resolve.extensions array.
-3) Add ‘check-types’ command
+Если вы используете `Babel CLI`, добавьте флаг `--extensions '.ts'`
 
-In package.json:
+Если вы используете Webpack, добавьте `'ts'` к массиву `resolve.extensions`.
+3) Добавьте проверку типов `check-types`
+
+В `package.json`:
+
+```json
 "scripts": {
 	"check-types": "tsc"
 }
-This command simply invokes the TypeScript compiler (tsc).
-Where does tsc come from? We need to install TypeScript:
+```
+
+Эта команда просто вызовет компилятор TypeScript (`tsc`).
+Откуда она возьмет `tsc`? Нам нужно установить TypeScript:
+
+```bash
 npm install --save-dev typescript
-To configure TypeScript (and tsc), we need a tsconfig.json file in the root directory:
+```
+
+Для настройки TypeScript (и tsc), нам нужен файл `tsconfig.json` в корневой директории:
+
+```json
 {
 	"compilerOptions": {
 		// Target latest version of ECMAScript.
@@ -249,31 +273,53 @@ To configure TypeScript (and tsc), we need a tsconfig.json file in the root dire
 		"src"
 	]
 }
-Done.
+```
+Готово.
 
-Well, the setup is done. Now run npm run check-types (watch mode: npm run check-types -- --watch) and ensure TypeScript is happy with your code. Chances are you’ll find a few bugs you didn’t know existed. This is a good thing! The Migrating from Javascript guide will help here.
-Microsoft’s TypeScript-Babel-Starter guide contains additional setup instructions, including installing Babel from scratch, generating type definition (d.ts) files, and using it with React.
-What about linting?
-Use tslint.
+Итак, установка завершена. 
 
-Update (Feb 2019): Use ESlint! The TypeScript team are focusing on ESLint integration since January. It’s easy to configure ESLint thanks to the @typesript-eslint project. For inspiration, check out my mega ESLint config which includes TypeScript, Airbnb, Prettier, and React.
-Babel + TypeScript = Beautiful Marriage.
-Love heartsLove hearts
-Photo by Akshar Dave
-Babel is the one-and-only JavaScript compiler you need. It can be configured to handle anything.
+Теперь запустите `npm run check-types` (режим наблюдения: `npm run check-types -- --watch`) и убедитесь, что TypeScript в восторге от вашего кода. 
 
-There’s no need to battle with two competing JavaScript compilers. Simplify your project configuration and take advantage of Babel’s amazing integration with linters, test runners, build systems, and boilerplates.
+Скорее всего вы сможете найти пару багов, о которых вы не подозревали. Это хорошая новость! Вам поможет The Migrating from Javascript guide.
 
-The Babel and TypeScript combo is lightning fast to compile, and allows you to stay in the zone as you code, and check types only when you’re ready.
+Гайд Microsoft TypeScript-Babel-Starter содержит дополнительные инструкции по установке, включая установку  Babel с нуля, генерацию типов файлов (`d.ts`), и использование их с React.
 
-Prediction: TypeScript will rise.
-According to the most recent Stack Overflow Developer Survey, JavaScript is the most popular language, with TypeScript trailing at #12. This is still a great achievement for TypeScript, beating out Ruby, Swift, and Go.
-Developer survey resultsDeveloper survey results
-I predict TypeScript will crack the top 10 by next year.
+Что насчет линтеров?
 
-The TypeScript team are working hard to spread the love. This Babel preset was a year long collaboration, and their new focus is on improving ESLint integration. This is a smart move — leverage the features, community, and plugins of existing tools. To develop competing compilers and linters is wasted effort.
-The path to TypeScript is paved by simply tweaking the config of our favourite tools. The barrier to entry has been smashed.
+Используйте tslint.
 
-With the rise in popularity of VS Code, developers are already setup with an amazing TypeScript environment. Autocomplete on steroids will bring tears of joy.
-It’s also now integrated into create-react-app v2.0, exposing TypeScript to an audience of 200k downloads per month.
-If you’ve been put off by TypeScript because it’s difficult to setup, it’s no longer an excuse. It’s time to give it a go.
+Обновление (Февраль 2019): Используйте ESlint! 
+
+Команда TypeScript сфокусировалась на интеграции с ESLint с января. 
+
+Настроить ESLint довольно легко благодаря `@typesript-eslint`. 
+
+Для вдохновления, зацените мой мегаконфиг ESLint который включает в себя TypeScript, Airbnb, Prettier, и React.
+
+Babel + TypeScript = Счастливы вместе.
+
+Babel единственный JavaScript компилятор, который вам необходим. Он конфигурируется для поддержки всего, что необходимо.
+
+Нет необходимости битвы между двумя соревнующимися компиляторами JavaScript. Упростите настройку вашего проекта и воспользуйтесь преимуществами интеграций Babel с линтерами, тестами, сборщиками, и бойлерплейтами.
+
+Сочетание Babel и TypeScript молниеносно быстро компилируется, и позволяет вам оставаться в зоне кодинга, осуществляя проверку типов только когда вы будете готовы.
+
+Вангую: TypeScript будет расти.
+
+Согласно последенему исследованию Stack Overflow Developer Survey, JavaScript самый популярный язык, с TypeScript на #12 позиции. Это большое достижение TypeScript, обогнать такие языки как Ruby, Swift, и Go.
+
+![dev survey](../../images/ts_with_babel/dev-survey.png)
+
+Вангую что TypeScript в следующем году ворвется в топ 10.
+
+Команда TypeScript усердно работает чтобы их продукт любили. Эта интеграция с Babel preset стала результатом годового сотрудничества между командами, и теперь они сфокусировались на интеграции с ESLint. 
+
+Это довольно умно — задействовать возможности, сообщество и плагины существующих инструментов. Разработка конкурирующих компиляторов и линтеров - напрсная трата усилий.
+
+Путь к TypeScript вымощен простыми настройками наших любимых инструментов. Препятствия для входа становятся все незаметнее.
+
+С ростом популярности VS Code, разработчики уже имеют среду для написания кода на TypeScript. Автокомплит на стероидах вызывает слезы радости.
+
+Также теперь есть поддержка в `create-react-app v2.0`, предоставляя TypeScript аудиторию с 200k загрузками в месяц.
+
+Если вы отложили TypeScript, потому что его сложно настроить, у вас больше нет оправданий. Пришло время выйти из сумрака.

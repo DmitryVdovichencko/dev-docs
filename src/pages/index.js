@@ -7,7 +7,7 @@ import SEO from "../components/seo"
 
 const IndexPage = ({ data }) => (
   <Layout>
-    <SEO title="Home" />
+    <SEO title="Dimetrio development docs" />
 
     <h3>
       Welcome to my Development Documents in English and in Russian Languge as
