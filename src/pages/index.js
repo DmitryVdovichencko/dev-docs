@@ -4,7 +4,7 @@ import { Link } from "gatsby"
 import Layout from "../components/layout"
 
 import SEO from "../components/seo"
-
+const isTitleCyrillic = (title) => (/[aА-яЯ]/gm.test(title));
 const IndexPage = ({ data }) => (
   <Layout>
     <SEO title="Dimetrio development docs" />
@@ -25,10 +25,11 @@ const IndexPage = ({ data }) => (
     </p>
     {data.allMdx.edges.map(({ node }, index) => (
       <div>
-        <Link key={index} to={node.fields.slug}>{`${index + 1}. ${
-          node.frontmatter.title
-        }`}</Link>
-        <p>{node.frontmatter.date}</p>
+        <Link
+          key={index}
+          to={node.fields.slug}
+        >{`${node.frontmatter.title}`}</Link>
+        <p>{isTitleCyrillic(node.frontmatter.title) ? node.frontmatter.dateRu:node.frontmatter.dateEn}</p>
         <p>{node.excerpt}</p>
       </div>
     ))}
@@ -45,7 +46,8 @@ export const query = graphql`
           id
           frontmatter {
             title
-            date(formatString: "DD MMMM, YYYY")
+            dateRu: date(formatString: "DD MMMM, YYYY", locale:"ru")
+            dateEn: date(formatString: "DD MMMM, YYYY", locale:"en")
             tags
           }
           fields {

@@ -1,7 +1,7 @@
 ---
 title: "Typescript и Babel: Счастливы Вместе" 
 date: "2020-10-04"
-tags: ["js"]
+tags: ["js","ru"]
 ---
 
 # Typescript и Babel: "Счастливы Вместе"
