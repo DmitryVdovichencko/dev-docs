@@ -1,3 +1,10 @@
-.post{
-    padding:5px 2rem;
-}
+@media screen and (min-width: 640px) {
+    .post {
+      padding: 5px 0.5rem;
+    }
+  }
+  @media screen and (min-width: 900px) {
+    .post {
+      padding: 5px 2rem;
+    }
+  }

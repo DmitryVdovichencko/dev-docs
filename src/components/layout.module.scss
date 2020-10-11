@@ -11,8 +11,7 @@ body,html {
 
 .content{
   margin: 0 auto;
-  max-width: 75vw;
-  padding: 0px 2rem;
+  padding: 0px 0.5rem;
   padding-top: 0;
   display: flex;
   height:80%;
@@ -24,8 +23,14 @@ body,html {
   flex-flow: column nowrap;
   
 }
+
+@media screen and (min-width: 1280px) {
+  .content {
+    padding: 0rem 20rem;
+  }
+}
 @media screen and (min-width: 900px) {
   .content {
-    padding: 0rem 10rem;
+    padding: 0rem 15rem;
   }
 }
