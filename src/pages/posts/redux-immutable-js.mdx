@@ -1,0 +1,357 @@
+---
+title: "Используем Redux и Immutable.js правильно" 
+date: "2020-10-11"
+tags: ["js","ru"]
+---
+
+# Используем Immutable.JS с Redux
+
+## Table of Contents
+
+- [Why should I use an immutable-focused library such as Immutable.JS?](#why-should-i-use-an-immutable-focused-library-such-as-immutablejs)
+- [Why should I choose Immutable.JS as an immutable library?](#why-should-i-choose-immutablejs-as-an-immutable-library)
+- [What are the issues with using Immutable.JS?](#what-are-the-issues-with-using-immutablejs)
+- [Is Immutable.JS worth the effort?](#is-using-immutablejs-worth-the-effort)
+- [What are some opinionated Best Practices for using Immutable.JS with Redux?](#what-are-some-opinionated-best-practices-for-using-immutablejs-with-redux)
+
+## Зачем вообще использовать библиотеки для работы с неизменяемыми структурами данных типа Immutable.JS?
+
+Библиотеки для неизменяемых данных, такие как Immutable.JS, разработаны чтобы преодолеть проблемы с неизменностью в JavaScript, они предоставляют преимущества использования неизменных структур данных, поддерживая производительность, которая необходима вашему приложению.
+
+Выберите ли вы использование таких библиотек, или продолжите использовать чистый JavaScript, зависит от готовности добавить еще одну зависимость в ваш проект, или от твоей уверенности что ты сможешь избежать ошибок и подводных камней  при работе с неизменностью в JavaScript.
+
+В независимости от твоего выбора, убедись что ты знаком с концепцией [immutability, side effects and mutation](./structuring-reducers/PrerequisiteConcepts.md#note-on-immutability-side-effects-and-mutation). В частности, нужно хорошо представлять что делает JavaScript при обновлении и копировании значений, чтобы защититься от внезапных изменений которые могут снизить производительность приложения или вобще его крашнуть.
+
+#### Подробная информация
+
+**Документация**
+
+- [Recipes: immutability, side effects and mutation](./structuring-reducers/PrerequisiteConcepts.md#note-on-immutability-side-effects-and-mutation)
+
+**Статьи**
+
+- [Introduction to Immutable.js and Functional Programming Concepts](https://auth0.com/blog/intro-to-immutable-js/)
+- [Pros and Cons of using immutability with React.js](http://reactkungfu.com/2015/08/pros-and-cons-of-using-immutability-with-react-js/)
+
+## Почему я должен выбрать Immutable.JS в качестве библиотеки для работы с неизменностью?
+
+Immutable.JS был разработан для работы с неизменностью в JavaScript  без потерь производительности. Его основные преимущества:
+
+#### Гарантированная неизменность
+
+Данные собранные в объекты Immutable.JS никогда не меняются. Всегда возвращается новая копия. В отличие от JavaScript, где некоторые операции не менют данных (ну например методы массивов Array, такие как map, filter, concat, forEach, и т.д.), но некоторые меняют ( методы массивов Array pop, push, splice, и т.д.).
+
+#### Богатое API
+
+Immutable.JS предоставляет широкий выбор структур для хранения данных (например Maps, Lists, Sets, Records, etc.), и значительный спектр методов для манипуляций с данными, для сортировки, фиьтрации, группировки, реверсирования, сворачивания, и создания подколлекций.
+
+#### Производительность
+
+Под капотом Immutable.JS много работает на оптимизацию производительности. В этом его сила, потому как использование неизменных структур данных способствует частому копированию значений. В частности, при работе с неизменностью в сложных структурах данных, таких как вложенное дерево состояния Redux, может генерироваться множество промежуточных объектов, которые жрут память и тормозят производительность пока сборщик мусора в браузере все это вычищает.
+
+Immutable.JS избегает этого [разумно отдавая данные](https://medium.com/@dtinth/immutable-js-persistent-data-structures-and-structural-sharing-6d163fbd73d2#.z1g1ofrsi), минимизируя копирование данных. Это включает в себя сложную цепочку операций которую нужно поддерживать не создавая ненужных (и дорогих) клонированных промежуточных данных, которые затем быстро выбросят в мусорку.
+
+Конечно, вы этого не увидите  - данные передаваемые в объект Immutable.JS неизменны. В отличие от, _промежуточных_ данных сгенерированных цепочкой методов Immutable.JS, которые могут свободно меняться. А вы тем временем получите все преимущества работы с неизмменными данными практически без потерь производительности.
+
+#### Что почитать?
+
+**Статьи**
+
+- [Immutable.js, persistent data structures and structural sharing](https://medium.com/@dtinth/immutable-js-persistent-data-structures-and-structural-sharing-6d163fbd73d2#.6nwctunlc)
+- [PDF: JavaScript Immutability - Don’t go changing](https://www.jfokus.se/jfokus16/preso/JavaScript-Immutability--Dont-Go-Changing.pdf)
+
+**Библиотеки**
+
+- [Immutable.js](https://facebook.github.io/immutable-js/)
+
+## Какие проблемы при использовании Immutable.JS?
+
+Силу Immutable.JS нужно использовать разумно,иначе это может привести к определенным проблемам. Заметьте, все эти проблемы по силам преодолеть если акуратно писать код.
+
+#### Сложности взаимодействия
+
+JavaScript не предоставляет неизменных структур данных. Так что, чтобы юзать Immutable.JS со всеми плюшками неизменности, данные придется хранить в объектах Immutable.JS (типа `Map` или `List`, и т.д.). Когда мы их собираем таким способом, становится сложнее взаимодействовать с простыми объектами JavaScript.
+
+Например, вы большете не сможете обращаться к свойствам объекта по старинке, как в JavaScript через точку или квадратные скобки. Вместо них придется юзать методы Immutable.JS’s `get()` или `getIn()`, котрый использует страшный синтаксис в виде массива строк, каждая из которых является свойством объекта.
+
+Например, вместо `myObj.prop1.prop2.prop3`, используйте `myImmutableMap.getIn([‘prop1’, ‘prop2’, ‘prop3’])`.
+
+Это не только делает ужасным взаимодествие с вашим кодом, но и с другими библиотекми, такими как lodash или ramda, котрые ожидают простые объекты JavaScript.
+
+Вообще, у Immutable.JS объектов есть метод `toJS()`, который возвращает стандартные JavaScript структуры данных, но этот метод очень медленный, и его повсеместное использование убивает все примущества производительности Immutable.JS.
+
+### Попробовав раз,ем и сейчас. После применения Immutable.JS расползется по всему вашему коду
+
+Однажды собрав данные с Immutable.JS, придется везде и всюду использовать методы Immutable.JS’s `get()` или `getIn()` для доступа к данным.
+
+Появляется эффект распространения Immutable.JS по всему коду, включая компоненты, где бы не очень хотелось его видеть. Ваш код должен знать что есть Immutable.JS объект, а что нет. И это делает сложным выпиливание Immutable.JS из вашего приложения в будущем, если это понадобится.
+
+Этих проблем можно избежать [разделяя логику приложения и структуры данных](https://medium.com/@dtinth/immutable-js-persistent-data-structures-and-structural-sharing-6d163fbd73d2#.z1g1ofrsi), как отмечено в разделе [лучших практик](#what-are-some-opinionated-best-practices-for-using-immutablejs-with-redux) далее.
+
+### Отсутствие деструктуризации и spread
+
+Поскольку данные теперь достаем с помощью методов Immutable.JS `get()` и `getIn()`, больше нельзя использовать деструктуризацию или оператор `spread` JavaScript, что делает код не таким элегантным.
+
+### Не вписывается для маленьких данных которые часто меняются
+
+Immutable.JS лучше всего работает с большими наборами данных, и чем больше тем лучше. Он может тормозить, если ваши данные состоят из небольших, простых JavaScript объектов, в каждом из которых есть несколько свойств с примитивными значениями.
+
+Заметим, как бы там ни было, что это не относится к дереву состояния Redux, которое (обычно) представлено в виде большого набора данных.
+
+### Сложная отладка
+
+Immutable.JS объекты, такие как `Map`, `List`, и т.п., могут иметь сложности с отладкой, поскольку при этом появлятся вся иерархия Immutable.JS-специфических свойств, до которой нам нет дела, тем временем данные, которые нам нужны лежат довольно глубоко.
+
+Для решения этой проблемы можно использовать расширение для Chrome [Immutable.js Object Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog), которое отображает ваши данные в Chrome Dev Tools, и скрывает специфические свойства Immutable.JS при отладке.
+
+### Отсутствие ссылок на объекты - причина низкой производительности
+
+Одно из преимуществ неизменности в том, что она активирует поверхностную проверку на равенство, что сильно улучшает производительность.
+
+Если две переменные указывают на один и тот же неизменный объект, тогда простой проверки на равенство этих переменных достаточно чтобы определить что они идентичны и значит объект, на который они указывают не менялся. Проверке на равенство не тебуется каждый раз проверять значение свойств объекта, поскольку, они - неизменны.
+
+Тем не менее, поверхностная проверка не сработает если данные не собраны внутри объекта Immutable.JS. Это потому что метод Immutable.JS `toJS()`, который возвращает данные из объекта Immutable.JS как JavaScript значение, при каждом вызове создает новый экземпляр объекта, а значит ломает ссылки на инкапсулированные данные.
+
+Поэтому, вызов `toJS()` дважды, например, и последующее присваивание результата двум разным переменным, спровоцирует ошибку при проверке на равенство этих переменных, даже если значения свойств объекта не менялись.
+
+Есть определенная проблема при использовании метода `toJS()` в функции-обертке компонента `mapStateToProps`, поскольку React-Redux поверхностно сравнивает каждое значение из свойств. Например, ссылочное значение свойства `todos`, которое возвращает `mapStateToProps` всегда будет новым объектом, и потому не пройдет поверхностную проверку на равенство.
+
+```js
+// ИЗБЕГАЕМ .toJS() в mapStateToProps
+function mapStateToProps(state) {
+  return {
+    todos: state.get('todos').toJS() // Всегда новый объект
+  }
+}
+```
+
+А когда мы не пройдем поверхностную проверку на равенство, React-Redux спровоцирует ререндеринг компонента. Использование `toJS()` в `mapStateToProps` в таком виде, будет приводить к ререндерингу компонента даже если значение не менялось, сильно влияя на производительность.
+
+Этого можно избежать используя `toJS()` в Компонентах Высшего Порядка (HOC), как это показано в [разделе лучших практик](#what-are-some-opinionated-best-practices-for-using-immutablejs-with-redux) далее.
+
+#### Что почитать
+
+**Статьи**
+
+- [Immutable.js, persistent data structures and structural sharing](https://medium.com/@dtinth/immutable-js-persistent-data-structures-and-structural-sharing-6d163fbd73d2#.hzgz7ghbe)
+- [Immutable Data Structures and JavaScript](http://jlongster.com/Using-Immutable-Data-Structures-in-JavaScript)
+- [React.js pure render performance anti-pattern](https://medium.com/@esamatti/react-js-pure-render-performance-anti-pattern-fb88c101332f#.9ucv6hwk4)
+- [Building Efficient UI with React and Redux](https://www.toptal.com/react/react-redux-and-immutablejs)
+
+**Chrome Расширение**
+
+- [Immutable Object Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog)
+
+## Стоит ли использование Immutable.JS всеъ этих усилий?
+
+Чаще всего, да. Есть много разных мнение, но существует множество причин для использования Immutable.JS. Не нужно недооценивать сложность отслеживания источника изменения состояния Redux.
+
+Компоненты могут ререндериться, когда не должны, и отказываться рендериться, когда нужно, и отслеживание бага, провоцирующего ререндеринг бывает довольно сложно, т.к. компонент с некорректным ререндерингом необязательно тот самый, у которого случайно изменились свойства.
+
+Эта проблема спровоцирована изменяемым объектом состояния редюсера Redux. С Immutable.JS, этой проблемы попросту не существует, так можно расправиться с целым пакетом багом.
+
+Это, включая производительность и обширное API для работы с данными, являются причинами, по которым Immutable.JS стоит потраченных усилий.
+
+#### Что почитать
+
+**Документация**
+
+- [Troubleshooting: Nothing happens when I dispatch an action](./Troubleshooting.md#nothing-happens-when-i-dispatch-an-action)
+
+## Лучшие практики использования Immutable.JS с Redux?
+
+Immutable.JS может предоставить значительную надежность и улучшение производительности, но его нужно использовать правильно. если вы выбрали Immutable.JS, используйте эти лучшие практики и получите все преимущества, без проблем, которые можно получить.
+
+### Никогда не смешивайте простые JavaScript объекты с Immutable.JS
+
+Никогда не разрешайте хранить в простых JavaScript объектах свойства Immutable.JS. Также, не храните в Immutable.JS объктах простые JavaScript объекты.
+
+#### Что почитать
+
+**Статьи**
+
+- [Immutable Data Structures and JavaScript](http://jlongster.com/Using-Immutable-Data-Structures-in-JavaScript)
+
+### убедитесь что весь Redux state - объект Immutable.JS
+
+Для Redux приложений, все состояние должно храниться как Immutable.JS объект, вообще без простых JavaScript объектов.
+
+- Создавайте состояние с помощью функции Immutable.JS `fromJS()`.
+
+- Используйте Immutable.JS-версию функции `combineReducers`, такую как [redux-immutable](https://www.npmjs.com/package/redux-immutable), т.к. Redux сам по себе ожидает дерево состояния как простой JavaScript объект.
+
+- При добавлении JavaScript объектов в Immutable.JS `Map` или `List` используя методы Immutable.JS `update`, `merge` или `set`, убедитесь, что добавляемый объект сконвертирован в Immutable объект с использованием `fromJS()`.
+
+**Например**
+
+```js
+// не надо так
+const newObj = { key: value }
+const newState = state.setIn(['prop1'], newObj)
+// newObj добавится как JavaScript объект, а НЕ Immutable.JS Map
+
+// делаем нормально
+const newObj = { key: value }
+const newState = state.setIn(['prop1'], fromJS(newObj))
+// newObj теперь Immutable.JS Map
+```
+
+#### Что почитать
+
+**Статьи**
+
+- [Immutable Data Structures and JavaScript](http://jlongster.com/Using-Immutable-Data-Structures-in-JavaScript)
+
+**Библиотеки**
+
+- [redux-immutable](https://www.npmjs.com/package/redux-immutable)
+
+### Используйте Immutable.JS везде, кроме тупых компонентов
+
+Использование Immutable.JS везде делает ваш код более производительным. Используйте его в умных компонентах, селекторах, сагах или санках, экшенах, и особенно в редьюсерах.
+
+Тем не менее, не нужно  использовать Immutable.JS в тупых компонентах.
+
+#### Что почитать
+
+**Статьи**
+
+- [Immutable Data Structures and JavaScript](http://jlongster.com/Using-Immutable-Data-Structures-in-JavaScript)
+- [Smart and Dumb Components in React](http://jaketrent.com/post/smart-dumb-components-react/)
+
+### Ограничьте использование `toJS()`
+
+`toJS()` дорогая функция и убивает всю суть использования Immutable.JS. Избегайте его использования.
+
+#### Что почитать
+
+**Обсуждения**
+
+- [Lee Byron on Twitter: “Perf tip for #immutablejs…”](https://twitter.com/leeb/status/746733697093668864)
+
+### Ваши селекторы должны возвращать Immutable.JS объекты
+
+Всегда. Такая практика имеет несколько преимуществ:
+
+- Избегаем ненужных ререндеров при использовании `.toJS()` в селекторах (поскольку `.toJS()` всегда возвращает новый экземпляр объекта).
+- Для селекторов используется последовательный интерфейс; больше не нужно следить что возвразаем Immutable.js объект или простой JavaScript объект.
+
+### Используйте Immutable.JS объекты в ваших Умных Компонентах
+
+Умные компоненты которые имеют доступ к состоянию с помощью функции React Redux `connect` должны использовать Immutable.JS значения из селекторов.
+
+#### Что почитать
+
+**Документация**
+
+- [Recipes: Computing Derived Data](./ComputingDerivedData.md)
+- [FAQ: Immutable Data](../faq/ImmutableData.md#immutability-issues-with-react-redux)
+- [Reselect Documentation: How do I use Reselect with Immutable.js?](https://github.com/reduxjs/reselect/#q-how-do-i-use-reselect-with-immutablejs)
+
+**Статьи**
+
+- [Redux Patterns and Anti-Patterns](https://tech.affirm.com/redux-patterns-and-anti-patterns-7d80ef3d53bc#.451p9ycfy)
+
+**Библиотеки**
+
+- [Reselect: Selector library for Redux](https://github.com/reduxjs/reselect)
+
+### Никогда не используйте `toJS()` в `mapStateToProps`
+
+Конвертирование Immutable.JS объекта в JavaScript объект, используя `toJS()` каждый раз вернет новый экземпляр объекта. Если вы сделаете это в `mapStateToProps`, компонент будет думать, что объект меняется каждый раз, когда меняется дерево состояния провоцируя необязательный ререндеринг.
+
+#### Что почитать
+
+**Документация**
+
+- [FAQ: Immutable Data](../faq/ImmutableData.md#how-can-immutability-in-mapstatetoprops-cause-components-to-render-unnecessarily)
+
+### Никогда не используйте Immutable.JS в ваших тупых компонентах
+
+Ваши тупые компоненты должны быть чистыми; вот и все, они должны отдавать один и тот же результат при использовании входных данных, и не должны иметь внешних зависимостей. Если передать такому компоненту объект Immutable.JS как свойство, вы сделаете его зависимым от Immutable.JS.
+
+Такая зависимость делает рендеринг компонента нечистым, затрудняет тестирование, реиспользование и рефакторинг компонента.
+
+#### Что почитать
+
+**Статьи**
+
+- [Immutable Data Structures and JavaScript](http://jlongster.com/Using-Immutable-Data-Structures-in-JavaScript)
+- [Smart and Dumb Components in React](http://jaketrent.com/post/smart-dumb-components-react/)
+- [Tips For a Better Redux Architecture: Lessons for Enterprise Scale](https://hashnode.com/post/tips-for-a-better-redux-architecture-lessons-for-enterprise-scale-civrlqhuy0keqc6539boivk2f)
+
+### Используйте компоненты высшего порядка HOC для привеления Immutable.JS свойств Умных компонентов к JavaScript свойствам Тупых компонентов.
+
+Нужно что-то, что позволит привести свойства Immutable.JS Умных компонентов к JavaScript свойствам Тупых компонентов. Компоненты высшего порядка (HOC) просто берут Immutable.JS свойства умных компонентов, и конвертируют их, используя `toJS()` в JavaScript свойства, которые передаются тупым компонентам.
+
+Вот пример HOC компонента. Похожий компонент доступен в npm: [with-immutable-props-to-js](https://www.npmjs.com/package/with-immutable-props-to-js).
+
+```js
+import React from 'react'
+import { Iterable } from 'immutable'
+
+export const toJS = WrappedComponent => wrappedComponentProps => {
+  const KEY = 0
+  const VALUE = 1
+
+  const propsJS = Object.entries(wrappedComponentProps).reduce(
+    (newProps, wrappedComponentProp) => {
+      newProps[wrappedComponentProp[KEY]] = Iterable.isIterable(
+        wrappedComponentProp[VALUE]
+      )
+        ? wrappedComponentProp[VALUE].toJS()
+        : wrappedComponentProp[VALUE]
+      return newProps
+    },
+    {}
+  )
+
+  return <WrappedComponent {...propsJS} />
+}
+```
+
+И вот как это используется в умном компоненте:
+
+```js
+import { connect } from 'react-redux'
+
+import { toJS } from './to-js'
+import DumbComponent from './dumb.component'
+
+const mapStateToProps = state => {
+  return {
+    obj: getImmutableObjectFromStateTree(state)
+  }
+}
+export default connect(mapStateToProps)(toJS(DumbComponent))
+```
+
+Конвертируя Immutable.JS объекты в JavaScript значения внутри HOC, мы достигаем мобильности для тупых компонентов, без потерь в производительности при использовании `toJS()` в умных компонентах.
+
+#### Что почитать
+
+**Документация**
+
+- [React: Higher-Order Components](https://facebook.github.io/react/docs/higher-order-components.html)
+
+**Статьи**
+
+- [React Higher Order Components in depth](https://medium.com/@franleplant/react-higher-order-components-in-depth-cf9032ee6c3e#.dw2qd1o1g)
+
+**Обсуждения**
+
+- [Reddit: acemarke and cpsubrian comments on Dan Abramov: Redux is not an architecture or design pattern, it is just a library.](https://www.reddit.com/r/javascript/comments/4rcqpx/dan_abramov_redux_is_not_an_architecture_or/d5rw0p9/?context=3)
+
+**Примеры кода**
+
+- [cpsubrian: React decorators for redux/react-router/immutable ‘smart’ components](https://gist.github.com/cpsubrian/79e97b6116ab68bd189eb4917203242c#file-tojs-js)
+
+### Используйте расширение Chrome Immutable Object Formatter для дебага
+
+Установите [Immutable Object Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog) , и спокойно просматривайте необходимые данные Immutable.JS.
+
+#### Что почитать
+
+**Chrome Расширение**
+
+- [Immutable Object Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog)
