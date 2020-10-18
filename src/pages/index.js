@@ -7,7 +7,7 @@ import SEO from "../components/seo"
 const isTitleCyrillic = (title) => (/[aА-яЯ]/gm.test(title));
 const IndexPage = ({ data }) => (
   <Layout>
-    <SEO title="Dimetrio development docs" />
+    <SEO title="Development docs" />
 
     <h3>
       Welcome to my Development Documents in English and in Russian Languge as
