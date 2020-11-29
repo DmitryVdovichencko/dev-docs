@@ -111,16 +111,19 @@ Set-Cookie: promo_shown=1; SameSite=Lax
 Когда пользователь придет на другой сайт,`cookie` не будет прикреплен к запросу на получение `amazing-cat.png`. Однако при переходе по ссылке к оригинальному посту `cat.html` в вашем блоге, запрос будет включать `cookie`. Это делает `Lax` хорошим выбором для `cookies` влиящих на отображение, тогда как `Strict` полезен для `cookies`, которые относятся к действиям пользователя
 
 
-Caution:
+__Предупреждение:__
 
-Neither Strict nor Lax are a complete solution for your site's security. Cookies are sent as part of the user's request and you should treat them the same as any other user input. That means sanitizing and validating the input. Never use a cookie to store data you consider a server-side secret.
+Ни `Strict` ни `Lax` не являются полноценным решением для обеспечения безопасности сайта. `Cookies` отправляются как часть запросов пользователя и с ними нужно обращаться также как и с другими пользовательскими данными. Нужно следить за чистотой и корректностью передаваемых данных. Никогда не используйте `cookies` для хранения секретных данных со стороны сервера.
 
-Finally there is the option of not specifying the value which has previously been the way of implicitly stating that you want the cookie to be sent in all contexts. In the latest draft of RFC6265bis this is being made explicit by introducing a new value of SameSite=None. This means you can use None to clearly communicate that you intentionally want the cookie sent in a third-party context.
-Three cookies labelled None, Lax, or Strict depending on their context
-Explicitly mark the context of a cookie as None, Lax, or Strict.
+Наконец, есть вариант не определять значение, что подразумевает собой отправку `cookies` во всех конекстах. В последнем черновике спецификации RFC6265bis это можно сделать яно определив `SameSite=None`. Это означает что можно использовать `None` если вы намеренно хотите отправлять `cookies` сторонним сайтам.
 
-If you provide a service that other sites consume such as widgets, embedded content, affiliate programs, advertising, or sign-in across multiple sites then you should use None to ensure your intent is clear.
-Changes to the default behavior without SameSite #
+IMG
+
+Если вы предоставляете сервис, которые другие сайты добавляют как виджет, встраиваемое содержимое, рекламу, или вам необходимо поодержка авторизации на разных сайтах, необходимо использовать `None`, чтобы ваши намерения были ясны.
+
+## Изменения в стандартном поведении без SameSite
+
+Несмотря на то, что аттрибут `SameSite` широко поддерживается, он, к сожалению, мало используется разработчиками.
 
 While the SameSite attribute is widely supported, it has unfortunately not been widely adopted by developers. The open default of sending cookies everywhere means all use cases work but leaves the user vulnerable to CSRF and unintentional information leakage. To encourage developers to state their intent and provide users with a safer experience, the IETF proposal, Incrementally Better Cookies lays out two key changes:
 
