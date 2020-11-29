@@ -123,64 +123,65 @@ IMG
 
 ## Изменения в стандартном поведении без SameSite
 
-Несмотря на то, что аттрибут `SameSite` широко поддерживается, он, к сожалению, мало используется разработчиками.
+Несмотря на то, что аттрибут `SameSite` широко поддерживается, он, к сожалению, мало используется разработчиками. По умолчанию, такое открытое поведение при отправке `cookies`, позволит во всех случаях их использовать, но при этом сделает пользователя уязвимым для CSRF атак и непредвиденных утечек личной информации. Чтобы обязать разработчиков явно заявлять о намерениях при использовании `cookies` и предоставлять пользователям более безопасные приложения, Инженерный Совет Интернета (IETF - Internet Engineering Task Force) предложил улучшение работы с `cookies` с двумя изменениями:
 
-While the SameSite attribute is widely supported, it has unfortunately not been widely adopted by developers. The open default of sending cookies everywhere means all use cases work but leaves the user vulnerable to CSRF and unintentional information leakage. To encourage developers to state their intent and provide users with a safer experience, the IETF proposal, Incrementally Better Cookies lays out two key changes:
+    `Cookies` без аттрибута `SameSite` трактуются как: `SameSite=Lax`.
+    `Cookies` с аттрибутом `SameSite=None` должны также содержать аттрибут `Secure`, и передаваться только по защищенному протоколу.
 
-    Cookies without a SameSite attribute will be treated as SameSite=Lax.
-    Cookies with SameSite=None must also specify Secure, meaning they require a secure context.
+Chrome добавил эти изменения начиная с версии 84. В Firefox они тестируются с версии 69 и в дальнейшем будут активны по умолчанию. Чтобы протестировать эти изменения в Firefox, откройте `about:config` и включите опцию `network.cookie.sameSite.laxByDefault`. Edge также планирует изменить свое стандартное поведение.
 
-Chrome implements this default behavior as of version 84. Firefox has them available to test as of Firefox 69 and will make them default behaviors in the future. To test these behaviors in Firefox, open about:config and set network.cookie.sameSite.laxByDefault. Edge also plans to change its default behaviors.
+## `SameSite=Lax` по умолчанию
 
-This article will be updated as additional browsers announce support.
-SameSite=Lax by default #
+Аттрибут не выбран:
 
-No attribute set
-
+```javascript
 Set-Cookie: promo_shown=1
+```
 
-If you send a cookie without any SameSite attribute specified…
+Если вы отправите `cookie` без аттрибута `SameSite`…
 
-Default behavior applied
+Применится стандартное поведение:
 
+```javascript
 Set-Cookie: promo_shown=1; SameSite=Lax
+```
 
-The browser will treat that cookie as if SameSite=Lax was specified.
+Браузер будет работать с `cookie` как при `SameSite=Lax`.
 
-While this is intended to apply a more secure default, you should ideally set an explicit SameSite attribute rather than relying on the browser to apply that for you. This makes your intent for the cookie explicit and improves the chances of a consistent experience across browsers.
+Даже несмотря на то что теперь предоставляется более безопасное поведение по умолчанию, вам лучше явно определить `SameSite`, чем предоставить это решение браузеру. Это сделает ваши намерения в отношении `cookie` прозрачными и улучшит кросс-браузерную поддержку.
 
-Caution:
+__Внимание:__
 
-The default behaviour applied by Chrome is slightly more permissive than an explicit SameSite=Lax as it will allow certain cookies to be sent on top-level POST requests. You can see the exact details on the blink-dev announcement. This is intended as a temporary mitigation, you should still be fixing your cross-site cookies to use SameSite=None; Secure.
-SameSite=None must be secure #
+Стандартное поведение Chrome чуть менее строгое чем явный `SameSite=Lax`, поскольку разрешена отправка некоторых `cookies` для POST запросов верхнего уровня. Подробнее об этом можно узнать здесь. Это временное снижение ограничений, если вам нужно передавать `cookies` сторонним сайтам, необходимо использовать: `SameSite=None; Secure`.
 
-Rejected
+## `SameSite=None` должны быть безопасными
 
+Отклонено:
+
+```javascript
 Set-Cookie: widget_session=abc123; SameSite=None
+```
 
-Setting a cookie without Secure will be rejected.
+Назначение `cookie` без `Secure` будет отклонено.
 
-Accepted
+Принято:
 
+```javascript
 Set-Cookie: widget_session=abc123; SameSite=None; Secure
+```
 
-You must ensure that you pair SameSite=None with the Secure attribute.
+Вы должны быть уверены что аттрибут `SameSite=None` используется в паре с аттрибутом `Secure`.
 
-You can test this behavior as of Chrome 76 by enabling chrome://flags/#cookies-without-same-site-must-be-secure and from Firefox 69 in about:config by setting network.cookie.sameSite.noneRequiresSecure.
+Вы можете протестировать это поведение с версии Chrome 76 включив `chrome://flags/#cookies-without-same-site-must-be-secure` и в Firefox 69 в `about:config`, установив `network.cookie.sameSite.noneRequiresSecure`.
 
-You will want to apply this when setting new cookies and actively refresh existing cookies even if they are not approaching their expiry date.
+Вам нужно их применить, когда вы устанавливаете новые `cookies` и активно обновляете существующие `cookies` даже если не истек их срок действия.
 
-If you rely on any services that provide third-party content on your site, you should also check with the provider that they are updating their services. You may need to update your dependencies or snippets to ensure that your site picks up the new behavior.
+Если вы зависите от сервисов, которые предоставляют сторонний контент на вашем сайте, вы также должны следить за тем что они обновляют свое поведение. Вам необходимо обновлять зависимости,чтобы быть уверенным, что ваш сайт поддерживает новое поведение.
 
-Both of these changes are backwards-compatible with browsers that have correctly implemented the previous version of the SameSite attribute, or just do not support it at all. By applying these changes to your cookies, you are making their intended use explicit rather than relying on the default behavior of the browser. Likewise, any clients that do not recognize SameSite=None as of yet should ignore it and carry on as if the attribute was not set.
+Оба этих изменения обратно-совместимы с браузерами, которые корректно воспроизводят предыдущую версию аттрибута `SameSite` или вообще ее не поддерживают. Аналогично, любые клиенты не поддерживающие `SameSite=None` до сих пор, должны игнорировать его и обрабатывать таким образом, как будто этот аттрибут не задан.
 
-Warning:
+Предупреждение:
 
-A number of older versions of browsers including Chrome, Safari, and UC browser are incompatible with the new None attribute and may ignore or restrict the cookie. This behavior is fixed in current versions, but you should check your traffic to determine what proportion of your users are affected. You can see the list of known incompatible clients on the Chromium site.
-SameSite cookie recipes #
+Определенное число старых версий браузеров Chrome, Safari, и UC несовместимы с новым значением `None` и могут игнорировать или отклонять `cookie`. Это поведение исправлено в текущих версиях, но необходимо проверить соотношение пользователей использующих старые версии. Список неподдерживаемых клиентов можно найти на сайте Chromium.
 
-For further detail on exactly how to update your cookies to successfully handle these changes to SameSite=None and the difference in browser behavior, head to the follow up article, SameSite cookie recipes.
-
-Kind thanks for contributions and feedback from Lily Chen, Malte Ubl, Mike West, Rob Dodson, Tom Steiner, and Vivek Sekhar
-
-Cookie hero image by Pille-Riin Priske on Unsplash
+Огромное спасибо за участие и обратную связь Lily Chen, Malte Ubl, Mike West, Rob Dodson, Tom Steiner, и Vivek Sekhar
