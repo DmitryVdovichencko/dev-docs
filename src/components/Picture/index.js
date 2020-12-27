@@ -16,7 +16,7 @@ const Picture = props => {
 					relativePath
 					relativeDirectory
 					childImageSharp {
-						fluid(maxWidth: 600, quality: 90) {
+						fluid(maxWidth: 600, quality: 100) {
 							...GatsbyImageSharpFluid
 						}
 					}
