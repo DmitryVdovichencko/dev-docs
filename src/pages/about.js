@@ -13,8 +13,10 @@ const AboutPage = ({ data }) => (
     </h1>
 		<div className={AboutStyles.content}>
 		<img width="150px" src={developer}></img>
-		<div>
-			<p>This my conspects and article translations about web development.</p>
+		<div className={AboutStyles.content__text}>
+			<h3> Hi, my name is Dmitry. I'm fullstack NodeJS & React developer &#128400;</h3>
+			<p>Here is my conspects and article translations to Russian about web development.</p>
+			<p>Feel free to get in touch about posts and translations.</p>
 		</div>
     </div>
   </Layout>
