@@ -25,7 +25,6 @@ const Picture = props => {
       }
     }
   `);
-	console.log(data)
 	const picture = data.pictures.nodes.filter((image) => image.relativePath === imageUrl)[0];
   return (
     <div className={PictureStyles.container}>
