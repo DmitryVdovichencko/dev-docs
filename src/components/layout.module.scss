@@ -16,7 +16,8 @@ body,html {
   padding: 0px 0.5rem;
   padding-top: 0;
   display: flex;
-  min-height:80%;
+	min-height:80%;
+	width:100%;
   flex-flow: column nowrap;
   justify-content: space-between;
 }
