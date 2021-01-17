@@ -1,0 +1,17 @@
+{
+  "excludeFiles": [
+    ".git",
+    "libs",
+    "node_modules",
+    "yaspeller"
+  ],
+  "lang": "ru",
+  "fileExtensions": [
+		".md",
+		".mdx",
+    ".css"
+  ],
+  "dictionary": [
+    "someword1"
+  ]
+}

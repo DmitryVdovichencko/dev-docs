@@ -15,6 +15,7 @@
     "gatsby-remark-shiki": "^0.1.2",
     "gatsby-source-filesystem": "^2.1.43",
     "gatsby-transformer-sharp": "^2.3.7",
+    "global": "^4.4.0",
     "lodash": "^4.17.15",
     "node-sass": "^4.13.1",
     "prop-types": "^15.7.2",
@@ -33,7 +34,8 @@
     "gatsby-transformer-remark": "^2.6.45",
     "gh-pages": "^3.1.0",
     "prettier": "^1.19.1",
-    "prismjs": "^1.18.0"
+    "prismjs": "^1.18.0",
+    "yaspeller": "^7.0.0"
   },
   "keywords": [
     "gatsby"
@@ -47,6 +49,7 @@
     "start": "npm run develop",
     "serve": "gatsby serve --prefix-paths",
     "clean": "gatsby clean",
+    "yaspeller": "yaspeller .",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
   },
   "repository": {
