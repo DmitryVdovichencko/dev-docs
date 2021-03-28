@@ -1,0 +1,65 @@
+# Разбираемся с `this` и `prototype` в JS.
+
+## Анализируем `this`
+
+// Кадр из Анализируй это - а ты хорош
+
+`this` - ключевое слово, которое автоматически определяется для области видимости каждой функции. Попробуем разобраться: зачем оно нам может пригодиться и что из себя представляет? Развеем "магию" `this` => вперед!
+
+### Зачем нужен `this`? 
+
+__`this` поможет использовать ваши функции с разными объектами(контекстами), вместо того, чтобы каждый раз передавать контекст в виде аргументов__
+
+
+```javascript
+
+const developerMickey = {
+	name:"Mikey"
+}
+
+const developerRey = {
+	name:"Rey"
+}
+
+// без this
+function getUserName(user){
+	return user.name.toUpperCase();
+}
+
+
+function sayHi(user){
+	const greeting = "Hi, I'm " + getUserName(user) + "& I'm Javascript developer.";
+	const answer = "Hi " + getUserName(user);
+	console.log(greeting, answer);
+}
+
+// с this
+function getUserName(){
+	return this.name.toUpperCase();
+}
+
+
+function sayHi(){
+	const greeting = "Hi, I'm " + getUserName() + "& I'm Javascript developer.";
+	const answer = "Hi " + getUserName();
+	console.log(greeting, answer);
+}
+
+sayHi.call(developerMickey);
+sayHi.call(developerRey);
+
+```
+### На что конкретно указывает `this`?
+
+Основные заблуждения: 
+
+* `this` указывает на саму функцию
+* `this` указывает на область видимости функции
+
+__`this	` - это не про то, когда функция объявляется, а про то, когда фунция вызывается.__
+
+Когда функция вызывается создается специльная запись известная как контекст выполнения. Там содержится полезная инфа:
+
+* Где функция была вызвана - её место в стеке вызовов
+* Какие аргументы были переданы
+* Ссылка на `this`. Эта ссылка будет использоваться на протяжении всего периода выполнения функции.
