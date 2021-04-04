@@ -69,3 +69,38 @@ __`this	` - это не про то, когда функция объявляе�
 * Где функция была вызвана - её место в стеке вызовов
 * Какие аргументы были переданы
 * Ссылка на `this`. Эта ссылка будет использоваться на протяжении всего периода выполнения функции.
+
+#### Как понять на что указывает `this` ?
+
+Чтобы понять, на что указывает `this` нужно разобраться с местом вызова функции: __call_site__.
+Разберемся чем являются __call-stack__ и __call_size__ для функции. 
+
+```javascript
+
+function createBuilding() {
+    // call-stack: `createBuilding`
+    // Так что, call-site в глобальной области видимости global scope
+
+    console.log( "We are create building in the center of city!" );
+    addOffice(); // <-- call-site для `addOffice`
+}
+
+function addOffice() {
+    // call-stack: `createBuilding` -> `addOffice`
+    // Так что, call-site в `createBuilding`
+
+    console.log( "We are adding office in our brand new building" );
+    addTable(); // <-- call-site для `addTable`
+}
+
+function addTable() {
+    // call-stack: `createBuilding` -> `addOffice` -> `addTable`
+    // Так что, call-site в `addOffice`
+
+    console.log( "addTable" );
+}
+
+createBuilding(); // <-- call-site  `createBuilding`
+
+```
+
