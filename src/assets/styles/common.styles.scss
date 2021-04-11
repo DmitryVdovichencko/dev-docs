@@ -1,3 +1,14 @@
-	a:visited {
-		color:#343a40;
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500&family=Roboto:wght@300;400&display=swap');
+body{
+	font-family: 'Roboto', sans-serif;
+}
+h1 {
+	font-family: 'Roboto Slab', serif;
+	a {
+		text-decoration: none;
+
+	}
+}
+a:visited {
+		color:#495057;
 	}
