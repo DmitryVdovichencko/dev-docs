@@ -17,7 +17,7 @@ body,html {
   padding-top: 0;
   display: flex;
 	min-height:80%;
-	width:100%;
+	
   flex-flow: column nowrap;
   justify-content: space-between;
 }
@@ -30,10 +30,12 @@ body,html {
 @media screen and (min-width: 1280px) {
   .content {
     padding: 0rem 20rem;
+		width:60%;
   }
 }
 @media screen and (min-width: 900px) {
   .content {
     padding: 0rem 15rem;
+		width:60%;
   }
 }

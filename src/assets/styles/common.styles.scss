@@ -1,14 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500&family=Roboto:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bitter:wght@700&family=DM+Mono&family=Open+Sans:wght@300;400;600&display=swap');
+
 body{
-	font-family: 'Roboto', sans-serif;
+
+	font-family: 'Open Sans', sans-serif;
+	font-size: 18px;
+	line-height: 28px;
+	color:#495057;
 }
 h1 {
-	font-family: 'Roboto Slab', serif;
+	font-family: 'Bitter', serif;
+	font-weight: 700;
+	font-style: normal;
 	a {
 		text-decoration: none;
-
 	}
 }
 a:visited {
 		color:#495057;
-	}
+}
+
+code {
+	font-family: 'DM Mono', monospace;
+	font-size: 14px;
+	padding: 5px;
+}
