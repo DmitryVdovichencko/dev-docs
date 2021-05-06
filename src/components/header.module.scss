@@ -1,5 +1,32 @@
 .header{
     padding:0 0.5rem;
+		h1{
+
+		}
+		a{
+			text-decoration: none;
+		}
+		
+}
+.header__container{
+	display:flex;
+	flex-flow: row wrap;
+	justify-content: flex-start;
+	align-items: center;
+
+	border-bottom: solid #122447 3px;
+}
+.header__title{
+	color:#122447;
+	letter-spacing: 0.02em;
+	word-spacing: 0.3em;
+	line-height: 1em;
+	padding-right: 1vw;
+
+}
+.header__icons{
+	font-size: 1.5em;
+	padding-bottom: 1vh;
 }
 .nav{
     width:100%;
