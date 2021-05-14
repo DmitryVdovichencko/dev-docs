@@ -34,7 +34,7 @@ import Picture from '../../components/Picture/';
 - __JWT Авторизация__ - Метод авторизации без состояния, где JSON Web token (JWT) записывается в браузере (обычно в localStorage). В JWT хранятся данные пользователя и они могут быть расшифрованы только с помощью секретного ключа, который хранится на сервере.
 
 - __OAuth и OpenID Connect Авторизация__ - Современный метод авторизации где приложения используют "подписи", сгенерированные другими приложениями для авторизации своих пользователей. Другими словами, это интегрированная авторизация где популярный сервис (например Google) реализует авторизацию и хранение данных пользователей, тогда как ваше приложение всего лишь его использует.
-Замечу, что Oauth довольно сложный механизм, и, поэтому, в этой статье мы его подробно не рассматриваем. Не только, потому что он излишен для небольших команд/стартапов запускающих приложение, но также, из-за того что он сильно зависит от используемого сервиса (таких как Google, Facebook, Github, и т.д.).
+Замечу, что Oauth довольно сложный механизм, и, поэтому, в этой статье мы его подробно не рассматриваем. Не только, потому что он излишен для небольших команд/стартапов запускающих приложение, но также, из-за того, что он сильно зависит от используемого сервиса (таких как Google, Facebook, Github, и т.д.).
 
 Ну и наконец, вы наверное заметили,что OAuth указан как "As a service" и "In house". Это сделано специально,чтобы отметить тот факт, что вообще-то есть компания называющаяся "OAuth", которая реализует OAuth протокол... как сервис - As a service. Но вы можете реализовать OAuth протокол без использования услуг компании "OAuth"!
 
@@ -49,21 +49,24 @@ import Picture from '../../components/Picture/';
 - Что такое сессия (session)
 - Как сессия session (на сервере) и cookie (в браузере) взаимодействуюи при авторизации пользователя
 
-### HTTP Headers
-There are many ways to make an HTTP request in a browser. An HTTP client could be a web application, IoT device, command line (curl), or a multitude of others. Each of these clients connect to the internet and make HTTP requests which either fetch data (GET), or modify data (POST, PUT, DELETE, etc.).
+### HTTP Headers. Разбираемся с заголовками.
 
-For explanation purposes, let's assume that:
+Есть много способов сделать HTTP запрос через браузер. HTTP клиентом может быть веб приложение, IoT устройство, утилита командной строки (curl), и еще много чего. Каждый из этих клиентов подключен к интернету и делает HTTP запросы которые получают (GET), либо меняют данные (POST, PUT, DELETE, и т.д.).
 
-Server = www.google.com Client = random guy in a coffee shop working on a laptop
+Попробуем разобраться на простом примере:
 
-When that random person from the coffee shop types www.google.com into their Google Chrome browser, this request will be sent with "HTTP Headers". These HTTP Headers are key:value pairs that provide additional data to the browser to help complete the request. This request will have two types of headers:
+Server = www.google.com Client = случайный чел в кофейне за ноутбуком
 
-General Headers
-Request Headers
-To make this interactive, open Google Chrome, open your developer tools (right click, "Inspect"), and click on the "Network" tab. Now, type www.google.com into your address bar, and watch as the Network tab loads several resources from the server. You should see several columns like Name, Status, Type, Initiator, Size, Time, and Waterfall. Find the request that has "document" as the "Type" value and click on it. You should see all the headers for this request and response interaction.
+Когда случайный чел из кофейни наберет www.google.com в своем браузере Google Chrome, этот запрос отправится с заголовками "HTTP Headers". Эти HTTP Headers являются парами ключ:значение и предоставлют дополнительную информацию, которая поможет браузеру сделать запрос. Этот запрос содержит два вида заголовков:
 
-The request that you (as the client) made will have General and Request headers resembling (but not exact) the following:
+- General Headers
+- Request Headers
 
+Чтобы посмотреть на них, откройте Google Chrome, перейдите в консоль разработчика developer tools, и кликните по вкладке "Network". Теперь, наберите www.google.com в адресной строке, и посмотрите как во вкладке Network загружаются разные ресурсы с сервера. Вы увидите разные колонки, такие как: Name, Status, Type, Initiator, Size, Time, и Waterfall. Найдите запрос у котрого в "Type" указано "document" и кликните по нему. Вы увидите заголовки запроса и ответ на запрос.
+
+Запрос который вы (в качестве клиента) сделали будет содержать приблизительно такие General и Request headers:
+
+```bash
 General Headers
   Request URL: https://www.google.com/
   Request Method: GET
@@ -72,33 +75,40 @@ Request Headers
   Accept: text/html
   Accept-Language: en-US
   Connection: keep-alive
-When you typed www.google.com into your address bar and pressed enter, your HTTP request was sent with these headers (and probably a few others). Although these headers are relatively self explanatory, I want to walk through a few to get a better idea of what HTTP Headers are used for. Feel free to look up any you don't know on MDN.
+```
 
-The General headers can be a mix of both request and response data. Clearly, the Request URL and Request Method are part of the request object and they tell the Google Chrome browser where to route your request. The Status Code is clearly part of the response because it indicates that your GET request was successfull and the webpage at www.google.com loaded okay.
+Когда вы набрали www.google.com into в адресной строке и нажали enter, ваш HTTP запрос был отправлен с этими заголовками (и скорее всего еще с несколькими). Значения этих заголовков говорят сами за себя, поэтому пробежимся по некоторым, чтобы разобраться с их предназначением. Все, что непонятно, можно позже почитать на MDN.
 
-The Request Headers only contain headers included with the request object itself. You can think of request headers as "instructions for the server". In this case, my request tells the Google server the following:
+General headers могут содержать информацию данные request и response. Очевидно, Request URL и Request Method часть запроса request и они сообщают браузеру Google Chrome browser куда направить запрос. Status Code, соответственно, чать ответа response поскольку он сообщает о том,что GET запрос успешно завершился и вебстраничка www.google.com загружена.
 
-Hey Google Server, please send me HTML or text data. I'm either incapable or not interested in reading anything else right now!
-Hey Google Server, please only send me English words
-Hey Google Server, please don't close my connection with you after the request is over
-There are many more request headers that you can set, but these are just a few common ones that you will probably see on all HTTP requests.
+Request Headers содержат только заголовки из запроса request. О них можно думать как об "инструкциях для сервера". В этом случае, мой запрос request говорит серверу Google следующее:
 
-So when you searched for www.google.com, you sent your request and the headers to the Google Server (for simplicity, we will just assume it is one big server). The Google Server accepted your request, read through the "instructions" (headers), and created a response. The response was comprised of:
+Хэй, Google Server, отправь-ка  мне HTML или text. Сейчас, у меня нет ни возможности, ни желания разбираться с чем-нибудь другим!
+Хэй, Google Server, и отправляй только слова на английском языке.
+И, да, Google Server, оставь соединение открытым, когда запрос будет завершен.
+Есть еще request headers которые можно установить, но эти - самые распространенные, их можно встретить в любом HTTP запросе.
 
-HTML data (what you see in your Browser)
-HTTP Headers
-As you might have guessed, the "Response Headers" were those set by the Google Server. Here are a few that you might see:
+Так что когда вы гуглите, вы отправляете запросы с заголовками серверу Google (для упрощения, будем считать у них один большой сервер). Сервер Google принимает запрос, читает "инструкции" (заголовки), и готовит ответ. Ответ содержит:
 
+- HTML data (то что вы увидите в браузере)
+- HTTP Headers
+
+Как вы уже догадались, "Response Headers" - те заголовки, что прислал нам сервер Google. Вот например:
+
+```bash
 Response Headers
   Content-Length: 41485
   Content-Type: text/html; charset=UTF-8
   Set-Cookie: made_up_cookie_name=some value; expires=Thu, 28-Dec-2020 20:44:50 GMT;
-These response headers are fairly straightforward with the exception of the Set-Cookie header.
+```
 
-I included the Set-Cookie header because it is exactly what we need to understand in order to learn what Session based Authentication is all about (and will help us understand other auth methods later in this post).
+Эти response headers довольно простые, за исключением заголовка Set-Cookie.
 
-How Cookies Work
-Without Cookies in the browser, we have a problem.
+Я добавил заголовок Set-Cookie, потому что это именно то что нам нужно, чтобы разобраться с авторизацией на основе сессии (Session based Authentication) а еще, это поможет с пониманием других методов авторизации далее.
+
+### Как работают Cookies
+
+Без Cookies в браузере, у нас есть проблема.
 
 If we have a protected webpage that we want our users to login to access, without cookies, those users would have to login every time they refresh the page! That is because the HTTP protocol is by default "stateless".
 
@@ -251,11 +261,12 @@ app.post("/register", (req, res, next) => {});
  */
 // Server listens on http://localhost:3000
 app.listen(3000);
+```
 The first thing we need to do is understand how the express-session module is working within this application. This is a "middleware", which is a fancy way of saying that it is a function that modifies something in our application.
 
 Quick Refresher on Express Middleware
 Let's say we had the following code:
-
+```javascript
 const express = require("express");
 var app = express();
 // Custom middleware
