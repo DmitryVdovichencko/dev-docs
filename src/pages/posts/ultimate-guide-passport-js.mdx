@@ -88,7 +88,7 @@ Request Headers содержат только заголовки из запро
 И, да, Google Server, оставь соединение открытым, когда запрос будет завершен.
 Есть еще request headers которые можно установить, но эти - самые распространенные, их можно встретить в любом HTTP запросе.
 
-Так что когда вы гуглите, вы отправляете запросы с заголовками серверу Google (для упрощения, будем считать у них один большой сервер). Сервер Google принимает запрос, читает "инструкции" (заголовки), и готовит ответ. Ответ содержит:
+Так что, когда вы гуглите, вы отправляете запросы с заголовками серверу Google (для упрощения, будем считать у них один большой сервер). Сервер Google принимает запрос, читает "инструкции" (заголовки), и готовит ответ. Ответ содержит:
 
 - HTML data (то что вы увидите в браузере)
 - HTTP Headers
@@ -110,44 +110,50 @@ Response Headers
 
 Без Cookies в браузере, у нас есть проблема.
 
-If we have a protected webpage that we want our users to login to access, without cookies, those users would have to login every time they refresh the page! That is because the HTTP protocol is by default "stateless".
+Если у нас есть защищенная вебстраничка, на которую могут попасть только авторизованные пользователи, без cookies, им придется каждый раз авторизоваться заново при обноалении страницы! Это происходит потому, что изначально протокол HTTP "без памяти" - он не хранит состояние.
 
-Cookies introduce the concept of "persistent state" and allow the browser to "remember" something that the server told it previously.
+Cookies представляют идею "хранения состояния" и позволяют браузеру "запомнить" ту информацию, что сервер прежде ему сообщал.
 
-The Google Server can tell my Google Chrome Browser to give me access to a protected page, but the second I refresh the page, my browser will "forget" this and make me authenticate again.
+Сервер Google может сообщить моему браузеру Google Chrome о том, что у меня есть доступ к защищенной странице, но, затем, если я обновлю страницу, и мой браузер "забудет" все, что было до этого, мне придется авторизоваться снова.
 
-This is where Cookies come in, and explains what the Set-Cookie header is aiming to do. In the above request where we typed in www.google.com into our browser and pressed enter, our client sent a request with some headers, and the Google Server responsed with a response and some headers. One of these response headers was Set-Cookie: made_up_cookie_name=some value; expires=Thu, 28-Dec-2020 20:44:50 GMT;. Here's how this interaction works:
+Здесь на помощь приходят Cookies, и становится ясно зачем нужен заголовок Set-Cookie. В запросе выше, когда мы ввели www.google.com в нашем браузере и нажали enter, клиент отправил запрос с определенными заголовками, и сервер Google Server отправил ответ, прикрепив свои заголовки. Одним из заголовков ответа сервера был `Set-Cookie: made_up_cookie_name=some value; expires=Thu, 28-Dec-2020 20:44:50 GMT;`. Вот как сейчас выглядит взаимодействие клиента и сервера:
 
-Server: "Hey client! I want you to set a cookie called made_up_cookie_name and set it equal to some value.
+Сервер: "Хэй клиент! Я хочу установить cookie с названием `made_up_cookie_name` и назаначить ему значение `some value`.
 
-Client: "Hey server, I will set this on the Cookie header of all my requests to this domain until Dec 28, 2020!"
+Клиент: "Хей сервер, я установлю такой заголовок Cookie на все мои запросы к этому домену до 28 декабря, 2020!"
 
-We can verify that this actually happened in Google Chrome Developer Tools. Go to "Application"->"Storage" and click "Cookies". Now click on the site that you are currently visiting and you will see all the cookies that have been set for this site. In our made-up example, you might see something like:
+Мы можем убедиться в этом используя консоль разработчика Google Chrome Developer Tools. Перейдите в "Application" => "Storage" и кликните на "Cookies". Теперь перейдите на сайт, который вы недавно посещали, и вы увидите какие cookies установлены для этого сайта. Для нашего выдуманного примера, вы бы увидели что-то вроде:
 
+```
 Name	Value	Expires / Max-Age
 madeupcookie_name	some value	2020-12-28T20:44:50.674Z
-This cookie will now be set to the Cookie Request Header on all requests made to www.google.com until the expiry date set on the cookie.
+```
 
-As you might conclude, this could be extremely useful for authentication if we set some sort of "auth" cookie. An overly simplified process of how this might work would be:
+Этот cookie будет установлен в Cookie Request Header на все запросы к www.google.com до тех пор, пока не истечет срок действия cookie.
 
-Random person from the coffee shop types www.example-site.com/login/ into the browser
-Random person from the coffee shop fills out a form on this page with a username and password
-Random person's Google Chrome Browser submits a POST request with the login data (username, password) to the server running www.example-site.com.
-The server running www.example-site.com receives the login info, checks the database for that login info, validates the login info, and if successful, creates a response that has the header Set-Cookie: user_is_authenticated=true; expires=Thu, 1-Jan-2020 20:00:00 GMT.
-The random person's Google Chrome browser receives this response and sets a browser cookie:
+Как вы уже поняли, это может очень помочь нам с авторизацией, если мы установим "авторизационный" cookie. Вот как это будет работать, если по-простому:
+
+Случайный чел из кофейни вводит www.example-site.com/login/ в браузере
+Случайный чел из кофейни заполняет форму авторизации, указав имя пользователя username и пароль password
+Браузер Google Chrome отправляет POST запрос с данными авторизации (username, password) на сервер www.example-site.com.
+Сервер www.example-site.com принимает данные авторизации, ищет в базе данных пользователя, сверяет пароль, если все ок, готовит ответ с заголовком `Set-Cookie: user_is_authenticated=true; expires=Thu, 1-Jan-2020 20:00:00 GMT`.
+Браузер случайного чела Google Chrome получает ответ и уставнавливает cookie  у себя:
+
+```
 Name	Value	Expires / Max-Age
 userisauthenticated	true	2020-12-28T20:44:50.674Z
-The random person now visits www.example-site.com/protected-route/
-The random person's browser creates an HTTP request with the header Cookie: user_is_authenticated=true; expires=Thu, 1-Jan-2020 20:00:00 GMT attached to the request.
-The server receives this request, sees that there is a cookie on the request, "remembers" that it had authenticated this user just a few seconds ago, and allows the user to visit the page.
-The Reality of this Situation
-Obviously, what I have just described would be a highly insecure way to authenticate a user. In reality, the server would create some sort of hash from the password the user provided, and validate that hash with some crypto library on the server.
+```
+Теперь случайный чел переходит на www.example-site.com/protected-route/
+Браузер готовит HTTP запрос с прикрепленным заголовком `Cookie: user_is_authenticated=true; expires=Thu, 1-Jan-2020 20:00:00 GMT`.
+Получив такой запрос, сервер увидит, что там есть cookie, "вспомнит" что был такой авторизованный юзер пару секунд назад, и разрешит ему посетить страницу.
 
-That said, the high-level concept is valid, and it allows us to understand the value of cookies when talking about authentication.
+#### Ожидание и реальность
 
-Keep this example in mind as we move through the remainder of this post.
+Очевидно, то что я только что описал очень уязвимый способ авторизации. В реальности, сервер должен сделать хэш из пароля, который отправил пользователь, и проверять пароль нужно именно используя зашифрованный хэш.
 
-Sessions
+Ну что, мы разобрались с основами работы с cookies,и это позволит нам пойти дальше чтобы понять процесс авторизации.
+
+## Сессии
 Sessions and cookies are actually quite similar, and can get confused because they can actually be used together quite seamlessly. The main difference between the two is the location of their storage.
 
 In other words, a Cookie is set by the server, but stored in the Browser. If the server wants to use this Cookie to store data about a user's "state", it would have to come up with an elaborate scheme to constantly keep track of what the cookie in the browser looks like. It might go something like this:
