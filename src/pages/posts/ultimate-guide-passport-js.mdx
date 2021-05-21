@@ -154,33 +154,37 @@ userisauthenticated	true	2020-12-28T20:44:50.674Z
 Ну что, мы разобрались с основами работы с cookies,и это позволит нам пойти дальше чтобы понять процесс авторизации.
 
 ## Сессии
-Sessions and cookies are actually quite similar, and can get confused because they can actually be used together quite seamlessly. The main difference between the two is the location of their storage.
+Сессии и cookies, вообще-то довольно похожи, и можно легко запутаться, т.к. их беспрепятственно используют вместе. Главная разница между ними в том, где они хранятся.
 
-In other words, a Cookie is set by the server, but stored in the Browser. If the server wants to use this Cookie to store data about a user's "state", it would have to come up with an elaborate scheme to constantly keep track of what the cookie in the browser looks like. It might go something like this:
+Другими словами, Cookie уставнавливает сервер, но записываются и хранятся они в браузере. Если бы сервер захотел использовать этот Cookie для записи "состояния" пользователя, все закончилось бы сложной схемой постоянного наблюдения за cookie в браузере. А выглядело бы это как-то так:
 
-Server: Hey browser, I just authenticated this user, so you should store a cookie to remind me (Set-Cookie: user_auth=true; expires=Thu, 1-Jan-2020 20:00:00 GMT) next time you request something from me
-Browser: Thanks, server! I will attach this cookie to my Cookie request header
-Browser: Hey server, can I see the contents at www.domain.com/protected? Here is the cookie you sent me on the last request.
-Server: Sure, I can do that. Here is the page data. I have also included another Set-Cookie header (Set-Cookie: marketing_page_visit_count=1; user_ip=192.1.234.21) because the company who owns me likes to track how many people have visited this specific page and from which computer for marketing purposes.
-Browser: Okay, I'll add that cookie to my Cookie request header
-Browser: Hey Server, can you send me the contents at www.domain.com/protected/special-offer? Here are all the cookies that you have set on me so far. (Cookie: user_auth=true; expires=Thu, 1-Jan-2020 20:00:00 GMT; marketing_page_visit_count=1; user_ip=192.1.234.21)
-As you can see, the more pages the browser visits, the more cookies the Server sets, and the more cookies the Browser must attach in each request Header.
+Сервер: "Хей браузер, я только что авторизовал этого пользователя, запиши-ка cookie, чтобы я не забыл (Set-Cookie: user_auth=true; expires=Thu, 1-Jan-2020 20:00:00 GMT) в следующий раз когда ты что-нибудь попросишь"
+Браузер: "Спасибо сервер! Я прикреплю этот Cookie к заголовкам запросов request header"
+Браузер: "Хей сервер, могу я посмотреть на www.domain.com/protected? Вот cookie который ты мне отправлял в прошлый раз."
+Сервер: "Конечно можешь. Вот эта страничка. И, кстати я к ней прикреплю еще Set-Cookie header (Set-Cookie: marketing_page_visit_count=1; user_ip=192.1.234.21), поскольку моя компания хочет знать сколько народу и с каких компов зашло на эту страничку: для маркетинга."
+Браузер: Okay, добавлю этот cookie к заголовкам запросов request header
+Браузер: Хей сервер, можешь отправить мне содержимое www.domain.com/protected/special-offer? Вот все cookies, что ты мне отпралял до сих пор.(Cookie: user_auth=true; expires=Thu, 1-Jan-2020 20:00:00 GMT; marketing_page_visit_count=1; user_ip=192.1.234.21)
+Как вы уже поняли, чем больше страниц посещает браузер, тем больше cookies устанавливает сервер, и тем больше cookies браузер  будет прикреплять к каждому заголовку запроса request Header.
 
-The Server might have some function that parses through all the cookies attached to a request and perform certain actions based on the presence or absence of a specific cookie. To me, this naturally begs the question... Why doesn't the server just keep a record of this information in a database and use a single "session ID" to identify events that a user is taking?
+Сервер в свою очередь должен уметь распарсить все cookies и предпринять определенные действия при отсутствии или наоборот присутствии некоторых cookie. И тут возникает вопрос... Почему бы серверу не хранить всю эту информацию в базе данных и использовать специальный "session ID" для идентификации действий пользователя?
 
-This is exactly what a session is for. As I mentioned, the main difference between a cookie and a session is where they are stored. A session is stored in some Data Store (fancy term for a database) while a Cookie is stored in the Browser. Since the session is stored on the server, it can store sensitive information. Storing sensitive information in a cookie would be highly insecure.
+Для этого и нужны сессии. Как я заметил выше, главное различие cookie и сессии в том, где их хранят. Сессия хранится в Data Store (обычно база данных), тогда как Cookie - в браузере. Поскольку сессии харнятся на сервере, туда можно записывать конфиденциальную информацию. Хранить конфиденциальную инфу в cookie будет в высшей степени небезопасно.
 
-Now where this all gets a bit confusing is when we talk about using cookies and session together.
+Теперь немного усложним задачу, и поговорим о том как использовать cookies и сессии вместе.
 
-Since Cookies are the method in which the client and server communicate metadata (among other HTTP Headers), a session must still utilize cookies. The easiest way to see this interaction is by actually building out a simple authentication application in Node + Express + MongoDB. I will assume that you have a basic understanding of building apps in Express, but I will try to explain each piece as we go.
+Поскольку Cookies это способ обмена метаданными между клиентом и сервером (через HTTP Headers), сессия должна использовать cookies. Самый простой способ посмотреть как это работает - на примере приложения с авторизацией используя Node + Express + MongoDB. Я предполагаю что вы знакомы с базовыми принципами разработки приложений на Express, но постараюсь объяснять некоторые моменты по мере необходимости.
 
-Setup a basic app:
+Начнем с создания базового приложения и установки зависимостей:
 
+``` bash
 mkdir session-auth-app
 cd session-auth-app
 npm init -y
 npm install --save express mongoose dotenv connect-mongo express-session passport passport-local
-Here is app.js. Read through the comments to learn more about what is going on before continuing.
+```
+
+Вот как будет выглядеть `app.js`. Рекомендую пробежаться по комментам, прежде чем читать дальше.
+
 ```javascript
 const express = require("express");
 const mongoose = require("mongoose");
@@ -188,58 +192,59 @@ const session = require("express-session");
 // Package documentation - https://www.npmjs.com/package/connect-mongo
 const MongoStore = require("connect-mongo")(session);
 /**
- * -------------- GENERAL SETUP ----------------
+ * -------------- ОБЩИЕ НАСТРОЙКИ ----------------
  */
-// Gives us access to variables set in the .env file via `process.env.VARIABLE_NAME` syntax
+// Получаем доступ к переменным окружения, указаным в .env файле с использованием синтакса `process.env.VARIABLE_NAME`
 require("dotenv").config();
-// Create the Express application
+// Создаем приложение Express
 var app = express();
-// Middleware that allows Express to parse through both JSON and x-www-form-urlencoded request bodies
-// These are the same as `bodyParser` - you probably would see bodyParser put here in most apps
+// Миддлвары Express позволяющие парсить JSON и x-www-form-urlencoded в теле запроса
+// Они такие же как и `bodyParser` - скорее всего вы видели здесь bodyParser во многих приложениях
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 /**
- * -------------- DATABASE ----------------
+ * -------------- БАЗА ДАННЫХ ----------------
  */
 /**
- * Connect to MongoDB Server using the connection string in the `.env` file.  To implement this, place the following
- * string into the `.env` file
+ * Соединяемся с MongoDB Server используя параметр в `.env` файле. Не забудьте добавить строку
+ * в `.env` файл:
  *
  * DB_STRING=mongodb://<user>:<password>@localhost:27017/database_name
  */
 const connection = mongoose.createConnection(process.env.DB_STRING);
-// Creates simple schema for a User.  The hash and salt are derived from the user's given password when they register
+// Создаем простенькую схему User. hash и salt будут получены при регистрации юзера
 const UserSchema = new mongoose.Schema({
   username: String,
   hash: String,
   salt: String,
 });
-// Defines the model that we will use in the app
+// Определяем модель, которую будет использовать приложение
 mongoose.model("User", UserSchema);
 /**
- * -------------- SESSION SETUP ----------------
+ * -------------- НАСТРОЙКА СЕССИИ ----------------
  */
 /**
- * The MongoStore is used to store session data.  We will learn more about this in the post.
+ * MongoStore используется для хранения данных сессии. Подробнее об этом поговорим попозже.
  *
- * Note that the `connection` used for the MongoStore is the same connection that we are using above
+ * Заметьте `connection` для MongoStore тот же connection что мы использовали выше
  */
 const sessionStore = new MongoStore({
   mongooseConnection: connection,
   collection: "sessions",
 });
 /**
- * See the documentation for all possible options - https://www.npmjs.com/package/express-session
+ * Документация по всем настройкам для сессий - https://www.npmjs.com/package/express-session
  *
- * As a brief overview (we will add more later):
+ * Краткий обзор того что здесь (подробнее - дальше):
  *
- * secret: This is a random string that will be used to "authenticate" the session.  In a production environment,
- * you would want to set this to a long, randomly generated string
+ * secret: Случайная строка, используемая для "авторизации" сессии. На проде,
+ * неплохо было бы установить длинную рандомную строку
  *
- * resave: when set to true, this will force the session to save even if nothing changed.  If you don't set this,
- * the app will still run but you will get a warning in the terminal
+ * resave: если установим true, то будем принудительно сохранять сессию, даже если ничего не менялось. Если его не установить,
+ * получим предупреждение в терминале
  *
- * saveUninitialized: Similar to resave, when set true, this forces the session to be saved even if it is unitialized
+ * saveUninitialized: похож на resave, если поставить true, то будем принудительно сохранять сессию, 
+ * даже если она не инициализировалась
  */
 app.use(
   session({
