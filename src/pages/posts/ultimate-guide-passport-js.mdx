@@ -255,14 +255,14 @@ app.use(
   })
 );
 /**
- * -------------- ROUTES ----------------
+ * -------------- РОУТЫ ----------------
  */
-// When you visit http://localhost:3000/login, you will see "Login Page"
+// Авторизация пользователя http://localhost:3000/login
 app.get("/login", (req, res, next) => {
   res.send("<h1>Login Page</h1>");
 });
 app.post("/login", (req, res, next) => {});
-// When you visit http://localhost:3000/register, you will see "Register Page"
+// Регистрация пользователя http://localhost:3000/register
 app.get("/register", (req, res, next) => {
   res.send("<h1>Register Page</h1>");
 });
@@ -270,22 +270,23 @@ app.post("/register", (req, res, next) => {});
 /**
  * -------------- SERVER ----------------
  */
-// Server listens on http://localhost:3000
+// Сервер запущен на http://localhost:3000
 app.listen(3000);
 ```
-The first thing we need to do is understand how the express-session module is working within this application. This is a "middleware", which is a fancy way of saying that it is a function that modifies something in our application.
+Сначала разберемся как `express-session` работает в этом приложении. Это "миддлвара" ("middleware"), специальный термин для функциии, которая что-либо меняет в нашем приложении.
 
-Quick Refresher on Express Middleware
-Let's say we had the following code:
+#### Краткий обзор по Express Middleware
+Например, у нас есть следующий код:
+
 ```javascript
 const express = require("express");
 var app = express();
-// Custom middleware
+// Специальная мидллвара
 function myMiddleware1(req, res, next) {
   req.newProperty = "my custom property";
   next();
 }
-// Another custom middleware
+// Еще одна специальная мидллвара
 function myMiddleware2(req, res, next) {
   req.newProperty = "updated value";
   next();
@@ -293,23 +294,26 @@ function myMiddleware2(req, res, next) {
 app.get("/", (req, res, next) => {
   res.send(`<h1>Custom Property Value: ${req.newProperty}`);
 });
-// Server listens on http://localhost:3000
+// Сервер запущен на http://localhost:3000
 app.listen(3000);
 ```
-As you can see, this is an extremely simple Express application that defines two middlewares and has a single route that you can visit in your browser at http://localhost:3000. If you started this application and visited that route, it would say "Custom Property Value: undefined" because defining middleware functions alone is not enough.
 
-We need to tell the Express application to actually use these middlewares. We can do this in a few ways. First, we can do it within a route.
+Как видите, это достаточно простое Express приложение в котором есть две миддлвары и один роут, на который можно перейти в браузере по адресу [http://localhost:3000](http://localhost:3000). Если вы запустили приложение и попробовали перейти по адресу, вы увидите "Custom Property Value: undefined", потому что просто объявить виддлвару недостаточно.
+
+Мы должны объяснить приложению Express, что нужно использовать эти миддлвары. Мы можем сделать это несколькими способами. Сначала, сделаем это в роуте.
+
 ```javascript
 app.get("/", myMiddleware1, (req, res, next) => {
   res.send(`<h1>Custom Property Value: ${req.newProperty}`);
 });
 ```
-If you add the first middleware function as an argument to the route, you will now see "Custom Property Value: my custom property" show up in the browser. What really happened here:
 
-The application was initialized
-A user visited http://localhost:3000/ in the browser, which triggered the app.get() function.
-The Express application first checked to see if there was any "global" middleware installed on the router, but it didn't find any.
-The Express application looked at the app.get() function and noticed that there was a middleware function installed before the callback. The application ran the middleware and passed the middleware the req object, res object, and the next() callback.
+Если передать первую миддлвару в качестве аргумента для роута вы увидите как "Custom Property Value: my custom property" отобразится в браузере. Что здесь произошло:
+
+- Приложение инициализировалось
+- Пользователь зашел на http://localhost:3000/ в браузере, что спровоцировало вызов функции `app.get()`.
+- Приложение Express сначала проверит есть ли какая-нибудь "глобальная" миддлвара для всех маршрутов, но ничего не найдет.
+- Приложение Express посмотрит на функцию `app.get()` и заметит, что установлена миддлвара перед вызовом колбэка. Приложение запустит миддлвару и передаст ей объекты `req`, `res`, и колбэк `next()`.
 The myMiddleware1 middleware first set req.newProperty, and then called next(), which tells the Express application "Go to the next middleware". If the middleware did not call next(), the browser would get "stuck" and not return anything.
 The Express app did not see any more middleware, so it continued with the request and sent the result.
 This is just one way to use middleware, and it is exactly how the passport.authenticate() function (more on this later, so keep in mind) works.
