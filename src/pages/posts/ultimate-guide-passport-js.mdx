@@ -314,52 +314,59 @@ app.get("/", myMiddleware1, (req, res, next) => {
 - Пользователь зашел на http://localhost:3000/ в браузере, что спровоцировало вызов функции `app.get()`.
 - Приложение Express сначала проверит есть ли какая-нибудь "глобальная" миддлвара для всех маршрутов, но ничего не найдет.
 - Приложение Express посмотрит на функцию `app.get()` и заметит, что установлена миддлвара перед вызовом колбэка. Приложение запустит миддлвару и передаст ей объекты `req`, `res`, и колбэк `next()`.
-The myMiddleware1 middleware first set req.newProperty, and then called next(), which tells the Express application "Go to the next middleware". If the middleware did not call next(), the browser would get "stuck" and not return anything.
-The Express app did not see any more middleware, so it continued with the request and sent the result.
-This is just one way to use middleware, and it is exactly how the passport.authenticate() function (more on this later, so keep in mind) works.
+Сначала, миддлвара `myMiddleware1` установит `req.newProperty`, затем вызовет функцию `next()`, которая скажет Express приложению: "Переходи к следующей миддлваре". Если миддлвара не вызовет `next()`, браузер застрянет и ничего не вернет.
+Приложение Express не увидит других миддлвар, так что закончит с обработкой запроса и отправит результат.
+Это один из способов использования миддлвары, и именно так работает функция `passport.authenticate()`.
 
-Another way we can use middleware is by setting it "globally". Take a look at our app after this change:
+Другой вариант использования миддлвары: объявить ее "глобально". Например:
 ```javascript
 const express = require("express");
 var app = express();
-// Custom middleware
+// Пользовательская миддлвара
 function myMiddleware1(req, res, next) {
   req.newProperty = "my custom property";
   next();
 }
-// Another custom middleware
+// Другая пользовательская миддлвара
 function myMiddleware2(req, res, next) {
   req.newProperty = "updated value";
   next();
 }
 app.use(myMiddleware2);
 app.get("/", myMiddleware1, (req, res, next) => {
-  // Sends "Custom Property Value: my custom property
+  // Отправит "Custom Property Value: my custom property
   res.send(`<h1>Custom Property Value: ${req.newProperty}`);
 });
 // Server listens on http://localhost:3000
 app.listen(3000);
-With this app structure, you will notice that visiting http://localhost:3000/ in the browser still returns the same value as before. This is because the app.use(myMiddleware2) middleware is happening before the app.get('/', myMiddleware1). If we removed the middleware from the route, you will see the updated value in the browser.
+```
 
+С такой  структурой приложения, посетив [http://localhost:3000/](http://localhost:3000/), вы увидите, что возвращается то же значение, что и прежде. Это потому, что вызов `app.use(myMiddleware2)` произошел перед  обработчиком роута `app.get('/', myMiddleware1)`. Если мы уберем миддлвару из роута, то увидим обновленное значение в браузере.
+
+```javascript
 app.use(myMiddleware2);
 app.get("/", (req, res, next) => {
-  // Sends "Custom Property Value: updated value
-  res.send(`<h1>Custom Property Value: ${req.newProperty}`);
-});
-We could also get this result by placing the second middleware after the first within the route.
-
-app.get("/", myMiddleware1, myMiddleware2, (req, res, next) => {
-  // Sends "Custom Property Value: updated value
+  // Отправит "Custom Property Value: updated value
   res.send(`<h1>Custom Property Value: ${req.newProperty}`);
 });
 ```
 
-Although this is a quick and high-level overview of middleware in Express, it will help us understand what is going on with the express-session middleware.
+Такого же результата можно достичь поместив вторую миддлвару после первой в обработчике роута.
 
-How Express Session Middleware works
-As I mentioned before, the express-session module gives us middleware that we can use in our application. The middleware is defined in this line:
 ```javascript
-// Again, here is the documentation for this - https://www.npmjs.com/package/express-session
+app.get("/", myMiddleware1, myMiddleware2, (req, res, next) => {
+  // Отправит "Custom Property Value: updated value
+  res.send(`<h1>Custom Property Value: ${req.newProperty}`);
+});
+```
+
+Это был краткий обзор того как работают миддлвары Express, он поможет нам разобраться, что происходит в миддлваре `express-session`.
+
+### Принцип работы мидддлвары Express Session
+Как я уже упоминал ранее, модуль `express-session` предоставляет нам миддлвару, которую мы можем использовать у себя в приложении. Объявляется она так:
+
+```javascript
+// И еще раз, ссылка на официальную доку - https://www.npmjs.com/package/express-session
 app.use(
   session({
     secret: process.env.SECRET,
@@ -370,18 +377,20 @@ app.use(
 );
 ```
 
-Here is a brief overview of what the Express Session Middleware is doing:
+Вот коротко то, чем занимается миддлвара Express Session:
 
-When a route is loaded, the middleware checks to see if there is a session established in the Session Store (MongoDB database in our case since we are using the connect-mongo custom Session Store).
-If there is a session, the middleware validates it cryptographically and then tells the Browser whether the session is valid or not. If it is valid, the Browser automatically attaches the connect.sid Cookie to the HTTP request.
-If there is no session, the middleware creates a new session, takes a cryptographic hash of the session, and stores that value in a Cookie called connect.sid. It then attaches the Set-Cookie HTTP header to the res object with the hashed value (Set-Cookie: connect.sid=hashed value).
-You might be wondering why this is useful at all, and how all this actually works.
+Когда  вызывается роут, миддлвара проверяет есть ли данные сессиии  представленные в Session Store (база данных MongoDB в нашем случае, раз уж мы используем для хранения сессии `connect-mongo`).
 
-If you remember from the quick refresher on Express Middlewares, I said that a middleware has the ability to alter the req and res objects that are passed from one middleware to the next until it reaches the end of the HTTP request. Just like we set a custom property on the req object, we could also set something much more complex like a session object that has properties, methods, etc.
+Если данные сессии нашлись, миддлвара проверит их и сообщит браузеру можно ли использовать сессию. Если сессия прошла валидацию, то браузер прикрепит id сессии `connect.sid` в Cookie HTTP запроса. 
 
-That is exactly what the express-session middleware does. When a new session is created, the following properties are added to the req object:
+Если сессия не найдена, миддлвара создаст новую сессию, создаст зашифрованный хеш сессии и запишет значение `connect.sid` в Cookie. Затем это значение будет прикреплено в заголовке ответа Set-Cookie (Set-Cookie: connect.sid=зашифрованный хеш).
+Возможны вы удивились, зачем все это вообще, и как это реально работает.
 
-req.sessionID - A randomly generated UUID. You can define a custom function to generate this ID by setting the genid option. If you do not set this option, the default is to use the uid-safe module.
+Если вы помните из кратого обзора по миддлварам Express, я говорил о том, что миддлвара имеет возможность  менять объекты `req` и `res`, которые передаются от миддлвары к миддлваре до тех пор, пока не дойдет до конца HTTP запроса. Также как мы устанавливали кастомные свойства на объект `req`, мы можем назначить кое- что поинтереснее, например объект сессии со своими свойствами и методами.
+
+Именно это и делает миддлввара `express-session`. Когда создается новая сессия, следующие свойства добавляются к объекту `req`:
+
+* `req.sessionID` - рандомно сгенерированный уникальный UUID. Вы можете объявить специальную функцию для генерации ID назначив параметр `genid`. Если вы этого не сделали, будет использоваться модуль `uid-safe`.
 
 ```javascript
 app.use(
