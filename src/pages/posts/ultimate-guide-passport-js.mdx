@@ -400,7 +400,10 @@ app.use(
     },
   })
 );
-req.session - The Session object. This contains information about the session and is available for setting custom properties to use. For example, maybe you want to track how many times a particular page is loaded in a single session:
+```
+req.session - объект сессии. Здесь хранятся данные сессии, также можно устанавливать свои свойства. Например, вы хотите отследить сколько раз была загружена определенная страничка в рамках одной сессии:
+
+```javascript
 app.get("/tracking-route", (req, res, next) => {
   if (req.session.viewCount) {
     req.session.viewCount = req.session.viewCount + 1;
@@ -411,8 +414,12 @@ app.get("/tracking-route", (req, res, next) => {
 });
 ```
 
-req.session.cookie - The Cookie object. This defines the behaviour of the cookie that stores the hashed session ID in the browser. Remember, once the cookie has been set, the browser will attach it to every HTTP request automatically until it expires.
-How Passport JS Local Strategy works
+`req.session.cookie` - объект Cookie. Здесь определяется поведение cookie которое записывает захешированный ID сессии в браузер. Помните, как только cookie установлен, браузер будет автоматически прикреплять его к каждому HTTP запросу, пока не истечет срок действия.
+
+
+## Как работает стратегия Passport JS Local Strategy
+
+
 There is one last thing that we need to learn in order to fully understand Session Based Authentication--Passport JS.
 
 Passport JS has over 500 authentication "Strategies" that can be used within a Node/Express app. Many of these strategies are highly specific (i.e. passport-amazon allows you to authenticate into your app via Amazon credentials), but they all work similar within your Express app.
